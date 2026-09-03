@@ -34,6 +34,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .stat span{color:var(--muted);font-size:13px}
 .stat .cur{margin-left:auto;font-size:13px;color:var(--accent);font-weight:600;white-space:nowrap}
 #prof{display:block;width:100%;height:150px;touch-action:none;border-radius:6px}
+@media (max-width:899px){.leaflet-bottom.leaflet-left{display:none}}
 @media (min-width:900px){#prof{height:190px} .sheet{left:auto;right:0;width:min(720px,60vw);bottom:0;border-left:1px solid var(--rule);border-top-left-radius:12px}}
 .legend{display:flex;gap:12px;font-size:12px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
 .legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:4px}
@@ -55,6 +56,17 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
 .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(122,130,144,.35)}
 .marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:rgba(122,130,144,.85);color:#fff;font-weight:600}
+.pm.pass{background:var(--ink);clip-path:polygon(50% 0,100% 100%,0 100%);border:0;box-shadow:none;width:18px;height:16px;filter:drop-shadow(0 0 1px #fff)}
+.pm.push{background:var(--t);border-radius:3px;transform:rotate(45deg);width:13px;height:13px}
+.pm.note{background:var(--accent);border-radius:50%;width:12px;height:12px}
+.wxm{background:var(--panel);border:1px solid var(--rule);border-radius:999px;padding:1px 6px;font:600 11px "Barlow Condensed",system-ui,sans-serif;white-space:nowrap;color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.2)}
+.wxm.hi{border-color:var(--accent);color:var(--accent)}
+.passlbl{background:transparent;border:0;font:600 12px "Barlow Condensed",system-ui,sans-serif;color:var(--ink);text-shadow:0 0 3px var(--bg),0 0 3px var(--bg),0 0 3px var(--bg);white-space:nowrap}
+.wxstrip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 6px;align-items:center}
+.wxstrip::-webkit-scrollbar{display:none}
+.wxstrip a{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--chip);border-radius:999px;padding:4px 10px;font:600 13px "Barlow Condensed",system-ui,sans-serif;white-space:nowrap}
+.wxstrip a.hi{background:var(--chip-on);color:var(--chip-on-ink)}
+.wxstrip .lbl{flex:0 0 auto;font-size:12px;color:var(--muted);margin-right:2px}
 .stagelbl{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:1px 6px;font:600 12px "Barlow Condensed",system-ui,sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 </style>
 </head>
@@ -67,6 +79,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 <div class="sheet" id="sheet">
   <div class="handle" id="handle"><i></i></div>
   <div class="stat" id="stat"></div>
+  <div class="wxstrip" id="wx"></div>
   <canvas id="prof"></canvas>
   <div class="legend"><span><i style="background:var(--p)"></i>Asphalt</span><span><i style="background:var(--g)"></i>Schotter</span><span><i style="background:var(--t)"></i>Pfad / schieben</span><span><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:4px;width:12px;height:11px"></i>Zeltplatz</span><span><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:4px;width:11px;height:11px"></i>Hütte</span><span><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:4px"></i>Bett</span><span><i style="background:var(--gps);height:8px;width:8px;border-radius:50%"></i>Standort</span></div>
 </div>
@@ -82,7 +95,9 @@ const P=[]; for(const s of RT.track){ for(const q of s.pts){ if(!P.length||q[3]>
 const TOTAL=P[P.length-1][3];
 function idxAtKm(km){ let lo=0,hi=P.length-1; while(lo<hi){const m=(lo+hi)>>1; if(P[m][3]<km) lo=m+1; else hi=m;} return lo; }
 // ---- map ----
-const map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:true});
+const sheet=document.getElementById('sheet');
+const map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:false});
+L.control.attribution({position:'bottomleft',prefix:false}).addTo(map);
 L.control.zoom({position:'topright'}).addTo(map);
 const topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap, SRTM · © OpenTopoMap (CC-BY-SA)'});
 const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
@@ -97,7 +112,9 @@ for(const s of RT.track){ const ll=s.pts.map(q=>[q[0],q[1]]);
 for(const s of RT.track){ const ll=s.pts.map(q=>[q[0],q[1]]);
   L.polyline(ll,{color:css(COL[s.c]||'--p'),weight:4,opacity:.95}).on('click',e=>setCursor(nearestKm(e.latlng.lat,e.latlng.lng).km,true)).addTo(routeLayer); }
 // stage-end labels
-for(const st of S){ L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${st.to}</div>`,iconAnchor:[0,0]}),interactive:false}).addTo(map); }
+for(const st of S){ L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${st.to}</div>`,iconAnchor:[0,0]}),zIndexOffset:600})
+  .bindPopup(`<div class="ty">Etappenziel Tag ${st.day} · km ${st.end_km}</div><b>${st.to}</b> <span style="color:var(--muted)">${st.ele} m</span><br>${st.from} → ${st.to}: ${st.km} km · ↑ ${st.up} m · ↓ ${st.down} m<div class="links"><a href="#" class="today" data-day="${st.day}">Tag ${st.day} zeigen</a><a href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">Wetter</a></div>`).addTo(map); }
+map.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('.today'); if(a) a.onclick=ev=>{ev.preventDefault(); selectDay(+a.dataset.day); map.closePopup();}; });
 // ---- places (campsites, huts, beds) ----
 const PL=RT.places||[]; const TY={camp_site:'Zeltplatz',caravan_site:'Stellplatz (Zelt ok)',alpine_hut:'Berghütte',wilderness_hut:'Schutzhütte',hostel:'Hostel',hotel:'Hotel',guest_house:'Pension / B&B',chalet:'Chalet',apartment:'Ferienwohnung',motel:'Motel'};
 function wx(lat,lon,name){return `https://oduerr.github.io/weather/?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}&name=${encodeURIComponent(name)}&model=bestmatch&panel=temperature&view=5d`;}
@@ -114,7 +131,25 @@ function buildPlaces(){ const [a,b]=range(); campLayer.clearLayers(); hutLayer.c
   for(const pl of PL){ if(day&&(pl.km<a-2||pl.km>b+2)) continue; const m=L.marker([pl.lat,pl.lon],{icon:icon(pl),title:pl.n}).bindPopup(popup(pl),{maxWidth:280});
     (pl.k==='camp'?campLayer:pl.k==='hut'?hutLayer:bedLayer).addLayer(m); } }
 campLayer.addTo(map); hutLayer.addTo(map); bedLayer.addTo(map);
-overlays={'Zeltplätze':campLayer,'Hütten & Hostels':hutLayer,'Betten (≤ 1,5 km)':bedLayer};
+// ---- features: passes, pushes, notes ----
+const FE=RT.features||[], WX=RT.weather||[];
+const KIND={pass:'Pass',push:'Schiebepassage',note:'Hinweis'};
+function fpopup(f){ const st=stageOf(f.km); let h=`<div class="ty">${KIND[f.k]} · km ${f.km.toFixed(1)} · Tag ${st.day}</div><b>${f.n}</b> <span style="color:var(--muted)">${f.ele} m</span><br>${f.txt}<div class="links">`;
+  for(const l of f.links) h+=`<a href="${l.u}" target="_blank" rel="noopener">${l.l}</a>`;
+  h+=`<a href="${wx(f.lat,f.lon,f.n)}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${f.km}" class="tokm">Im Profil</a></div>`; return h; }
+const featLayer=L.layerGroup().addTo(map);
+for(const f of FE){ const m=L.marker([f.lat,f.lon],{icon:L.divIcon({className:'',html:`<div class="pm ${f.k}"></div>`,iconSize:[18,16],iconAnchor:[9,8],popupAnchor:[0,-8]}),title:f.n,zIndexOffset:500}).bindPopup(fpopup(f),{maxWidth:300});
+  if(f.k==='pass') m.bindTooltip(`${f.n} ${f.ele} m`,{permanent:true,direction:'right',offset:[8,0],className:'passlbl'});
+  featLayer.addLayer(m); }
+// ---- weather points ----
+const wxLayer=L.layerGroup();
+for(const w of WX){ const m=L.marker([w.lat,w.lon],{icon:L.divIcon({className:'',html:`<div class="wxm${w.h?' hi':''}">☁ ${w.n}</div>`,iconAnchor:[0,10]}),interactive:true,zIndexOffset:w.h?400:100});
+  m.bindPopup(`<div class="ty">Wetter · km ${w.km} · ${w.ele} m</div><b>${w.n}</b><div class="links"><a href="${wx(w.lat,w.lon,w.n)}" target="_blank" rel="noopener">5-Tage-Wetter öffnen</a></div>`); wxLayer.addLayer(m); }
+function wxStrip(){ const [a,b]=range(); const el=document.getElementById('wx'); const list=WX.filter(w=>day?(w.km>=a-0.1&&w.km<=b+0.1):w.h||w.km===0||w.km>=667);
+  el.innerHTML='<span class="lbl">Wetter</span>'+list.map(w=>`<a class="${w.h?'hi':''}" href="${wx(w.lat,w.lon,w.n)}" target="_blank" rel="noopener">${w.h?'▲ ':''}${w.n}</a>`).join(''); }
+map.on('zoomend',()=>{ const z=map.getZoom(); if(z>=9&&!map.hasLayer(wxLayer)&&wxOn) wxLayer.addTo(map); if(z<9&&map.hasLayer(wxLayer)) map.removeLayer(wxLayer); });
+let wxOn=true; map.on('overlayadd',e=>{ if(e.layer===wxLayer) wxOn=true; }); map.on('overlayremove',e=>{ if(e.layer===wxLayer) wxOn=false; });
+overlays={'Zeltplätze':campLayer,'Hütten & Hostels':hutLayer,'Betten (≤ 1,5 km)':bedLayer,'Pässe & Hinweise':featLayer,'Wetterpunkte (ab Zoom 9)':wxLayer};
 L.control.layers(baseMaps,overlays,{position:'topright',collapsed:true}).addTo(map);
 // ---- cursor + gps ----
 const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[12,12]}),interactive:false}).addTo(map);
@@ -134,16 +169,19 @@ function setCursor(km,openTip){ curKm=km; const i=idxAtKm(km), p=P[i]; cursor.se
 let day=0; const chips=document.getElementById('chips');
 function chip(label,d){const b=document.createElement('button');b.className='chip';b.textContent=label;b.onclick=()=>selectDay(d);chips.appendChild(b);return b;}
 chip('Alle',0); for(const st of S) chip(String(st.day),st.day);
+function fitPad(){ const sh=sheet.getBoundingClientRect(), W=innerWidth, H=innerHeight, hdr=document.querySelector('.hdr .bar').getBoundingClientRect();
+  const desktop=W>=900; const bottom=sheet.classList.contains('min')?44:(H-sh.top);
+  return desktop?{paddingTopLeft:[24,hdr.bottom+16],paddingBottomRight:[sh.width+24,bottom+16]}:{paddingTopLeft:[16,hdr.bottom+12],paddingBottomRight:[16,bottom+12]}; }
 function range(){ if(!day) return [0,TOTAL]; const st=S[day-1]; return [st.start_km,st.end_km]; }
 function selectDay(d,noFit){ day=d; [...chips.children].forEach((c,i)=>c.classList.toggle('on',i===d));
   const [a,b]=range(); const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]);
-  if(!noFit) map.fitBounds(L.latLngBounds(pts),{padding:[30,30]});
+  if(!noFit) map.fitBounds(L.latLngBounds(pts),fitPad());
   const stat=document.getElementById('stat');
   if(!day){ const up=S.reduce((x,s)=>x+s.up,0), dn=S.reduce((x,s)=>x+s.down,0);
     stat.innerHTML=`<b>Gesamt</b><span>${TOTAL.toFixed(0)} km</span><span>↑ ${up.toLocaleString('de')} m</span><span>↓ ${dn.toLocaleString('de')} m</span><span>10 Tage</span><span class="cur" id="cur"></span>`; }
   else { const st=S[day-1];
     stat.innerHTML=`<b>Tag ${st.day}</b><span>${st.from} → <strong>${st.to}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="cur" id="cur"></span>`; }
-  location.hash=day?('d'+day):''; if(curKm<a||curKm>b) curKm=a; buildPlaces(); drawProfile(); updateCur(); }
+  location.hash=day?('d'+day):''; if(curKm<a||curKm>b) curKm=a; buildPlaces(); wxStrip(); drawProfile(); updateCur(); }
 // ---- profile ----
 const cv=document.getElementById('prof'), ctx=cv.getContext('2d');
 function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
@@ -166,6 +204,10 @@ function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, 
   ctx.font='600 11px "Barlow Condensed",system-ui'; ctx.fillStyle=css('--ink');
   for(const st of S){ if(st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=css('--accent'); ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
     ctx.textAlign= (x>W-60)?'right':'left'; ctx.fillText(`${st.to} ${st.ele} m`, x+(x>W-60?-3:3), T0+10); } }
+  // passes on the profile
+  ctx.font='600 11px "Barlow Condensed",system-ui'; 
+  for(const f of FE){ if(f.k!=='pass'||f.km<a||f.km>b) continue; const x=X(f.km), y=Y(f.ele); ctx.fillStyle=css('--ink'); ctx.beginPath(); ctx.moveTo(x,y-9); ctx.lineTo(x+4,y-2); ctx.lineTo(x-4,y-2); ctx.closePath(); ctx.fill();
+    if((b-a)<200||f.ele>1300){ ctx.textAlign=x>W-70?'right':'left'; ctx.fillText(`${f.n.replace('Passo ','P. ').replace('Capanne di ','')} ${f.ele}`, x+(x>W-70?-6:6), y-12); } }
   // campsites / huts on the axis
   for(const pl of PL){ if(pl.k==='bed'||pl.km<a||pl.km>b) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?css('--ok'):'#8B5A2B';
     ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
@@ -183,7 +225,7 @@ cv.addEventListener('pointermove',e=>{ if(dragging||e.pointerType==='mouse') set
 cv.addEventListener('pointerup',()=>{dragging=false;}); cv.addEventListener('pointercancel',()=>{dragging=false;});
 cv.addEventListener('dblclick',()=>{ const p=P[idxAtKm(curKm)]; map.setView([p[0],p[1]],Math.max(map.getZoom(),14)); });
 // ---- sheet ----
-const sheet=document.getElementById('sheet'); document.getElementById('handle').onclick=()=>{sheet.classList.toggle('min'); setTimeout(drawProfile,260);};
+document.getElementById('handle').onclick=()=>{sheet.classList.toggle('min'); setTimeout(()=>{drawProfile(); if(day) selectDay(day);},280);};
 // ---- locate control ----
 const Locate=L.Control.extend({onAdd(){ const d=L.DomUtil.create('div','leaflet-bar leaflet-control leaflet-control-locate'); const a=L.DomUtil.create('a','',d); a.href='#'; a.title='Standort'; a.innerHTML='◎';
   L.DomEvent.on(a,'click',e=>{L.DomEvent.stop(e); toggleLocate(d);}); this._d=d; return d; }});
