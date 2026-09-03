@@ -232,9 +232,10 @@ function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, 
   ctx.font='600 11px "Barlow Condensed",system-ui';
   for(const st of S){ if(st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=C_ACC; ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0-4);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle=C_ACC; if(overview){ ctx.textAlign='right'; ctx.fillText(st.day, x-3, T0+6); } else { ctx.textAlign=(x>W-70)?'right':'left'; ctx.fillText(`${st.to} ${st.ele} m`, x+(x>W-70?-3:3), T0+6); } } }
-  const endXs=S.filter(st=>st.end_km>a&&st.end_km<=b+1e-6).map(st=>X(st.end_km));
+  const endSpans=S.filter(st=>st.end_km>a&&st.end_km<=b+1e-6).map(st=>{ const ex=X(st.end_km); const ew=overview?12:ctx.measureText(`${st.to} ${st.ele} m`).width+6; return ex>W-70?[ex-ew,ex]:[ex,ex+ew]; });
   if(!overview||W>700){ for(const f of FE){ if(f.k!=='pass'||f.km<a||f.km>b) continue; const x=X(f.km), y=Y(f.ele); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.moveTo(x,y-9); ctx.lineTo(x+4,y-2); ctx.lineTo(x-4,y-2); ctx.closePath(); ctx.fill();
-    if(!overview||f.ele>1300){ const right=x>W-70; const clash=y-12<T0+14&&endXs.some(ex=>Math.abs(ex-x)<110); ctx.textAlign=right?'right':'left'; ctx.fillText(`${f.n.replace('Passo ','P. ').replace('Capanne di ','')} ${f.ele}`, x+(right?-6:6), clash?y+16:y-12); } } }
+    if(!overview||f.ele>1300){ const lbl=`${f.n.replace('Passo ','P. ').replace('Capanne di ','')} ${f.ele}`; const tw=ctx.measureText(lbl).width; const right=x+6+tw>W-R0; const span=right?[x-6-tw,x-6]:[x+6,x+6+tw];
+      const clash=y-12<T0+14&&endSpans.some(es=>span[0]<es[1]&&span[1]>es[0]); ctx.textAlign=right?'right':'left'; ctx.fillText(lbl, x+(right?-6:6), clash?y+18:y-12); } } }
   for(const pl of PL){ if(pl.k==='bed'||pl.km<a||pl.km>b||(overview&&pl.k!=='camp')) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?'#2E8B57':'#8B5A2B'; ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
   if(gps&&gps.km>=a&&gps.km<=b){ const x=X(gps.km); ctx.fillStyle='#1E88E5'; ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(gps.km)][2]),5,0,7); ctx.fill(); }
   if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=C_INK; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill();
