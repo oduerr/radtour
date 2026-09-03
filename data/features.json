@@ -1,0 +1,203 @@
+[
+{
+"km": 83.8,
+"k": "pass",
+"n": "Wildhaus-Sattel",
+"ele": 1038,
+"lat": 47.20092,
+"lon": 9.34071,
+"txt": "Höchster Punkt des Toggenburgs, dann Abfahrt ins Rheintal.",
+"links": []
+},
+{
+"km": 144.4,
+"k": "pass",
+"n": "Kunkelspass",
+"ele": 1357,
+"lat": 46.85661,
+"lon": 9.41156,
+"txt": "Alte Römer-Säumerroute, autofrei. Vättis-Seite asphaltiert, ~4 km Schotter über den Pass; die Tamins-Seite (Abfahrt) 5,9 km mit 12 % Schnitt, Rampen bis 20 %.",
+"links": [
+{
+"l": "quäldich",
+"u": "https://www.quaeldich.de/paesse/kunkelspass/"
+},
+{
+"l": "climbfinder",
+"u": "https://climbfinder.com/de/anstiege/kunkelspass"
+},
+{
+"l": "bikesophy",
+"u": "https://www.bikesophy.com/gravel/gravelbike-tour-ueber-den-kunkelspass"
+},
+{
+"l": "Gravel Zürich",
+"u": "https://gravelzuerich.wordpress.com/2021/01/25/vom-taminatal-ins-rheintal/"
+}
+]
+},
+{
+"km": 223.7,
+"k": "pass",
+"n": "Lukmanierpass",
+"ele": 1915,
+"lat": 46.57896,
+"lon": 8.80168,
+"txt": "Asphalt-Passstrasse, mässiger Verkehr. Hospezi Santa Maria direkt am Pass (km 225,6).",
+"links": [
+{
+"l": "quäldich",
+"u": "https://www.quaeldich.de/paesse/lukmanierpass/"
+},
+{
+"l": "passzwang",
+"u": "https://www.passzwang.net/de/lukmanier.php"
+}
+]
+},
+{
+"km": 227.5,
+"k": "push",
+"n": "Schieben 1 · Beginn",
+"ele": 1929,
+"lat": 46.5662,
+"lon": 8.78367,
+"txt": "Track wird Pfad: 1,9 km, +278 m, Ø 15 %, steilste 200 m 18 %. OSM: smoothness very_horrible, mtb:scale 2. Bachbett-artig, praktisch alle schieben.",
+"links": []
+},
+{
+"km": 231.4,
+"k": "pass",
+"n": "Passo dell'Uomo",
+"ele": 2218,
+"lat": 46.54086,
+"lon": 8.75933,
+"txt": "Autofrei. Danach 9 km Naturstrasse durchs Val Piora zum Lago Ritom – fahrbar, aber grob.",
+"links": [
+{
+"l": "hikr.org",
+"u": "https://www.hikr.org/dir/Passo_dell_Uomo_7353/mtb/"
+},
+{
+"l": "trail.ch",
+"u": "https://www.trail.ch/tour/ritomsee/ritomsee.htm"
+},
+{
+"l": "mountainbiker.ch",
+"u": "https://mountainbiker.ch/touren/passo-dell-uomo-passo-del-sole"
+}
+]
+},
+{
+"km": 240.0,
+"k": "note",
+"n": "Lago Ritom",
+"ele": 1811,
+"lat": 46.53297,
+"lon": 8.67756,
+"txt": "Rifugio Lago Ritom (220 m abseits). Abfahrt zur Staumauer und nach Piotta auf schmaler Asphaltstrasse.",
+"links": []
+},
+{
+"km": 265.5,
+"k": "push",
+"n": "Schieben 2 · Beginn",
+"ele": 1923,
+"lat": 46.47171,
+"lon": 8.44608,
+"txt": "Abzweig von der Nufenenstrasse auf den Bergweg (weiss-rot-weiss): 3,3 km, +374 m, steilste 200 m 26 %, dann langes flaches Gipfelplateau. Teils sac_scale mountain_hiking (T2).",
+"links": []
+},
+{
+"km": 268.8,
+"k": "pass",
+"n": "Passo San Giacomo",
+"ele": 2313,
+"lat": 46.4587,
+"lon": 8.45075,
+"txt": "Höchster Punkt der Tour. Grenze CH/IT, alte Finanzkaserne. Ab hier die alte ENEL-Staudammstrasse: 9 km Schotterkehren am Lago Toggia vorbei nach Riale.",
+"links": [
+{
+"l": "quäldich",
+"u": "https://www.quaeldich.de/paesse/passo-san-giacomo/"
+},
+{
+"l": "hikr.org",
+"u": "https://www.hikr.org/dir/Passo_San_Giacomo_6930/"
+},
+{
+"l": "itinerarium",
+"u": "https://www.itinerarium.it/escursioni/31/passo-san-giacomo"
+},
+{
+"l": "tourispo",
+"u": "https://www.tourispo.com/biketrack/over-the-passo-san-giacomo.html"
+}
+]
+},
+{
+"km": 272.5,
+"k": "note",
+"n": "Rifugio Maria Luisa",
+"ele": 2157,
+"lat": 46.43482,
+"lon": 8.42827,
+"txt": "2 160 m am Lago Toggia. Juni–September, mittwochs geschlossen. +39 0324 63086.",
+"links": [
+{
+"l": "Rifugio",
+"u": "https://www.rifugiomarialuisa.it/"
+}
+]
+},
+{
+"km": 441.7,
+"k": "note",
+"n": "Ghislarengo · Reisebene",
+"ele": 149,
+"lat": 45.40922,
+"lon": 8.32488,
+"txt": "Einziges Hotel in 61 km (2,3 km abseits). Alternative: 12 km nach Vercelli. Kein Zeltplatz, kein Wald – hier nicht wild campen.",
+"links": []
+},
+{
+"km": 616.8,
+"k": "pass",
+"n": "Capanne di Marcarolo",
+"ele": 709,
+"lat": 44.57774,
+"lon": 8.72517,
+"txt": "9 km Schotteranstieg durch den Naturpark (260 → 709 m). Zelt zählt im Park nur oberhalb 900 m als Biwak – die Route bleibt darunter, also durchfahren.",
+"links": [
+{
+"l": "Parco",
+"u": "https://www.areeprotetteappenninopiemontese.it/2011/03/08/domande-frequenti/"
+}
+]
+},
+{
+"km": 635.5,
+"k": "pass",
+"n": "Passo del Turchino",
+"ele": 542,
+"lat": 44.4881,
+"lon": 8.73488,
+"txt": "SS 456, Hauptstrasse mit Tunnel am Scheitel; die Autobahn nimmt den meisten Verkehr.",
+"links": [
+{
+"l": "quäldich",
+"u": "https://www.quaeldich.de/paesse/passo-del-turchino/"
+}
+]
+},
+{
+"km": 652.0,
+"k": "note",
+"n": "Genova Voltri",
+"ele": 18,
+"lat": 44.43068,
+"lon": 8.77787,
+"txt": "Die letzten 15 km Aurelia sind Stadtverkehr. Regionalzug Voltri → Genova Piazza Principe, 20 min, Fahrrad erlaubt.",
+"links": []
+}
+]

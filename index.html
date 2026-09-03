@@ -6,6 +6,8 @@
 <title>Konstanz → Genova</title>
 <meta name="theme-color" content="#1D6E8C">
 <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="vendor/markercluster/MarkerCluster.css">
+<link rel="stylesheet" href="vendor/markercluster/MarkerCluster.Default.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
 <style>
 :root{--bg:#F2F3EF;--panel:rgba(250,250,247,.94);--ink:#1F2328;--muted:#646A72;--rule:#D4D7D0;--accent:#1D6E8C;
@@ -41,6 +43,18 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .leaflet-tooltip.rt{font-variant-numeric:tabular-nums;font-size:13px}
 .gpsdot{background:var(--gps);border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(30,136,229,.35)}
 .cursordot{background:var(--ink);border:2px solid #fff;border-radius:50%}
+.pm{width:14px;height:14px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);box-sizing:border-box}
+.pm.camp{background:var(--ok);clip-path:polygon(50% 0,100% 100%,0 100%);border:0;box-shadow:none;width:16px;height:14px;filter:drop-shadow(0 0 1px #000)}
+.pm.hut{background:#8B5A2B;border-radius:3px}
+.pm.bed{background:#7A8290;border-radius:50%;width:10px;height:10px}
+.pm.end{box-shadow:0 0 0 3px var(--accent)}
+.leaflet-popup-content{margin:10px 12px;font-size:14px;line-height:1.35;min-width:200px}
+.leaflet-popup-content b{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:18px;font-weight:600}
+.leaflet-popup-content .ty{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.leaflet-popup-content .links a{display:inline-block;margin:6px 8px 0 0;padding:4px 9px;border-radius:6px;background:var(--chip);color:var(--ink);text-decoration:none;font-weight:600;font-size:13px}
+.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
+.marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(122,130,144,.35)}
+.marker-cluster-small div,.marker-cluster-medium div,.marker-cluster-large div{background:rgba(122,130,144,.85);color:#fff;font-weight:600}
 .stagelbl{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:1px 6px;font:600 12px "Barlow Condensed",system-ui,sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}
 </style>
 </head>
@@ -54,9 +68,10 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
   <div class="handle" id="handle"><i></i></div>
   <div class="stat" id="stat"></div>
   <canvas id="prof"></canvas>
-  <div class="legend"><span><i style="background:var(--p)"></i>Asphalt</span><span><i style="background:var(--g)"></i>Schotter</span><span><i style="background:var(--t)"></i>Pfad / schieben</span><span><i style="background:var(--gps);height:8px;width:8px;border-radius:50%"></i>Standort</span></div>
+  <div class="legend"><span><i style="background:var(--p)"></i>Asphalt</span><span><i style="background:var(--g)"></i>Schotter</span><span><i style="background:var(--t)"></i>Pfad / schieben</span><span><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:4px;width:12px;height:11px"></i>Zeltplatz</span><span><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:4px;width:11px;height:11px"></i>Hütte</span><span><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:4px"></i>Bett</span><span><i style="background:var(--gps);height:8px;width:8px;border-radius:50%"></i>Standort</span></div>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
+<script src="vendor/markercluster/leaflet.markercluster.js"></script>
 <script src="data/data.js"></script>
 <script>
 (function(){
@@ -74,7 +89,7 @@ const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:
 const swiss=L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',{maxZoom:18,attribution:'© swisstopo'});
 const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri, Maxar'});
 topo.addTo(map);
-L.control.layers({'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'OSM':osm},null,{position:'topright'}).addTo(map);
+let overlays=null; const baseMaps={'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'OSM':osm};
 // ---- route ----
 const routeLayer=L.layerGroup().addTo(map);
 for(const s of RT.track){ const ll=s.pts.map(q=>[q[0],q[1]]);
@@ -83,6 +98,24 @@ for(const s of RT.track){ const ll=s.pts.map(q=>[q[0],q[1]]);
   L.polyline(ll,{color:css(COL[s.c]||'--p'),weight:4,opacity:.95}).on('click',e=>setCursor(nearestKm(e.latlng.lat,e.latlng.lng).km,true)).addTo(routeLayer); }
 // stage-end labels
 for(const st of S){ L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${st.to}</div>`,iconAnchor:[0,0]}),interactive:false}).addTo(map); }
+// ---- places (campsites, huts, beds) ----
+const PL=RT.places||[]; const TY={camp_site:'Zeltplatz',caravan_site:'Stellplatz (Zelt ok)',alpine_hut:'Berghütte',wilderness_hut:'Schutzhütte',hostel:'Hostel',hotel:'Hotel',guest_house:'Pension / B&B',chalet:'Chalet',apartment:'Ferienwohnung',motel:'Motel'};
+function wx(lat,lon,name){return `https://oduerr.github.io/weather/?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}&name=${encodeURIComponent(name)}&model=bestmatch&panel=temperature&view=5d`;}
+function popup(pl){ const st=stageOf(pl.km); const off=pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m';
+  let h=`<div class="ty">${TY[pl.t]||pl.t}${pl.e?' · am Etappenziel':''}${pl.bc?' · Naturplatz':''}</div><b>${pl.n||TY[pl.t]||'?'}</b><br>km ${pl.km.toFixed(1)} (Tag ${st.day}) · ${off} neben der Route · ${pl.ele} m`;
+  if(pl.o) h+=`<br><span class="ty">Öffnung</span> ${pl.o}`;
+  h+='<div class="links">'; if(pl.w) h+=`<a href="${pl.w.startsWith('http')?pl.w:'https://'+pl.w}" target="_blank" rel="noopener">Website</a>`; if(pl.p) h+=`<a href="tel:${pl.p.replace(/\s/g,'')}">${pl.p}</a>`;
+  h+=`<a href="${wx(pl.lat,pl.lon,pl.n||TY[pl.t])}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${pl.km}" class="tokm">Im Profil</a></div>`; return h; }
+const icon=pl=>L.divIcon({className:'',html:`<div class="pm ${pl.k}${pl.e?' end':''}"></div>`,iconSize:pl.k==='bed'?[10,10]:[16,14],iconAnchor:pl.k==='bed'?[5,5]:[8,7],popupAnchor:[0,-8]});
+const campLayer=L.layerGroup(), hutLayer=L.layerGroup();
+const bedLayer=L.markerClusterGroup({maxClusterRadius:36,disableClusteringAtZoom:13,showCoverageOnHover:false,spiderfyOnMaxZoom:true});
+map.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); setCursor(+a.dataset.km,true); sheet.classList.remove('min'); drawProfile();}; });
+function buildPlaces(){ const [a,b]=range(); campLayer.clearLayers(); hutLayer.clearLayers(); bedLayer.clearLayers();
+  for(const pl of PL){ if(day&&(pl.km<a-2||pl.km>b+2)) continue; const m=L.marker([pl.lat,pl.lon],{icon:icon(pl),title:pl.n}).bindPopup(popup(pl),{maxWidth:280});
+    (pl.k==='camp'?campLayer:pl.k==='hut'?hutLayer:bedLayer).addLayer(m); } }
+campLayer.addTo(map); hutLayer.addTo(map); bedLayer.addTo(map);
+overlays={'Zeltplätze':campLayer,'Hütten & Hostels':hutLayer,'Betten (≤ 1,5 km)':bedLayer};
+L.control.layers(baseMaps,overlays,{position:'topright',collapsed:true}).addTo(map);
 // ---- cursor + gps ----
 const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[12,12]}),interactive:false}).addTo(map);
 cursor.bindTooltip('',{permanent:false,direction:'top',className:'rt',offset:[0,-6]});
@@ -110,7 +143,7 @@ function selectDay(d,noFit){ day=d; [...chips.children].forEach((c,i)=>c.classLi
     stat.innerHTML=`<b>Gesamt</b><span>${TOTAL.toFixed(0)} km</span><span>↑ ${up.toLocaleString('de')} m</span><span>↓ ${dn.toLocaleString('de')} m</span><span>10 Tage</span><span class="cur" id="cur"></span>`; }
   else { const st=S[day-1];
     stat.innerHTML=`<b>Tag ${st.day}</b><span>${st.from} → <strong>${st.to}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="cur" id="cur"></span>`; }
-  location.hash=day?('d'+day):''; if(curKm<a||curKm>b) curKm=a; drawProfile(); updateCur(); }
+  location.hash=day?('d'+day):''; if(curKm<a||curKm>b) curKm=a; buildPlaces(); drawProfile(); updateCur(); }
 // ---- profile ----
 const cv=document.getElementById('prof'), ctx=cv.getContext('2d');
 function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
@@ -133,6 +166,9 @@ function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, 
   ctx.font='600 11px "Barlow Condensed",system-ui'; ctx.fillStyle=css('--ink');
   for(const st of S){ if(st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=css('--accent'); ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
     ctx.textAlign= (x>W-60)?'right':'left'; ctx.fillText(`${st.to} ${st.ele} m`, x+(x>W-60?-3:3), T0+10); } }
+  // campsites / huts on the axis
+  for(const pl of PL){ if(pl.k==='bed'||pl.km<a||pl.km>b) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?css('--ok'):'#8B5A2B';
+    ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
   // gps tick
   if(gps){ const k=gps.km; if(k>=a&&k<=b){ const x=X(k); ctx.fillStyle=css('--gps'); ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(k)][2]),5,0,7); ctx.fill(); } }
   // cursor
@@ -167,7 +203,8 @@ function toggleLocate(d){ if(watchId!==null){ navigator.geolocation.clearWatch(w
 map.on('dragstart',()=>{follow=false;});
 function updateCur(){ const el=document.getElementById('cur'); if(!el) return; if(!gps){ el.textContent=''; return; }
   const st=stageOf(gps.km); const off=gps.off>=1?gps.off.toFixed(1)+' km':Math.round(gps.off*1000)+' m';
-  el.textContent=`📍 km ${gps.km.toFixed(1)} · ${off} neben der Route · noch ${fmtKm(st.end_km-gps.km)} bis ${st.to}`; }
+  let nc=null; for(const pl of PL){ if(pl.k==='camp'&&pl.km>=gps.km-0.5&&(!nc||pl.km<nc.km)) nc=pl; }
+  el.textContent=`📍 km ${gps.km.toFixed(1)} · ${off} neben der Route · noch ${fmtKm(st.end_km-gps.km)} bis ${st.to}`+(nc?` · nächster Zeltplatz ${fmtKm(nc.km-gps.km)} (${nc.n||'Camping'})`:''); }
 // ---- init ----
 const h=location.hash.match(/^#d(\d+)/); selectDay(h?Math.min(10,+h[1]):0);
 window.addEventListener('resize',drawProfile); if(document.fonts) document.fonts.ready.then(drawProfile);
