@@ -51,12 +51,15 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .strip a,.strip button{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--chip);border:0;border-radius:999px;padding:0 10px;height:30px;line-height:30px;font:600 13px "Barlow Condensed",system-ui,sans-serif;cursor:pointer}
 .strip a.hi{background:var(--chip-on);color:var(--chip-on-ink)}
 .strip .lbl{flex:0 0 auto;font-size:12px;color:var(--muted);margin-right:2px;width:46px}
-#prof{display:block;width:100%;height:140px;touch-action:none;border-radius:6px}
+#prof{display:block;width:100%;height:140px;}
+@media (max-height:700px){#prof{height:110px}}
+#prof{touch-action:none;border-radius:6px}
 .legend{display:flex;gap:10px;font-size:11px;color:var(--muted);margin-top:4px;flex-wrap:nowrap;overflow:hidden;white-space:nowrap;align-items:center}
 .legend i{display:inline-block;width:16px;height:4px;border-radius:2px;vertical-align:middle;margin-right:3px}
 .legend .attr{margin-left:auto;font-size:10px}
 .legend .attr a{color:var(--muted)}
 @media (max-width:480px){.legend span.x{display:none}}
+@media (max-width:899px){.leaflet-bottom.leaflet-left{display:none}}
 @media (min-width:900px){#prof{height:180px} .sheet{left:auto;right:0;width:min(720px,60vw);border-left:1px solid var(--rule);border-top-left-radius:12px} .hdr .bar{max-width:760px} :root{--hdr-h:96px}}
 .leaflet-control-locate a{font-size:20px;text-align:center;display:block;cursor:pointer;text-decoration:none;color:#333}
 .leaflet-control-locate.on a{color:#1E88E5;font-weight:700}
@@ -65,11 +68,13 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .leaflet-tooltip.rt{font-variant-numeric:tabular-nums;font-size:13px}
 .gpsdot{background:#1E88E5;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(30,136,229,.35)}
 .cursordot{background:#1F2328;border:2px solid #fff;border-radius:50%}
+.pmw{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%}
+.pmw.end{box-shadow:0 0 0 3px #1D6E8C;background:rgba(29,110,140,.12)}
 .pm{width:14px;height:14px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);box-sizing:border-box}
 .pm.camp{background:#2E8B57;clip-path:polygon(50% 0,100% 100%,0 100%);border:0;box-shadow:none;width:16px;height:14px;filter:drop-shadow(0 0 1px #000)}
 .pm.hut{background:#8B5A2B;border-radius:3px}
 .pm.bed{background:#7A8290;border-radius:50%;width:10px;height:10px}
-.pm.end{box-shadow:0 0 0 3px #1D6E8C}
+.pm.biv{background:#fff;border:2px solid #6B5A45;border-radius:2px;width:12px;height:12px}
 .pm.pass{background:#1F2328;clip-path:polygon(50% 0,100% 100%,0 100%);border:0;box-shadow:none;width:18px;height:16px;filter:drop-shadow(0 0 1px #fff)}
 .pm.push{background:#E0242A;border-radius:3px;transform:rotate(45deg);width:13px;height:13px}
 .pm.note{background:#1D6E8C;border-radius:50%;width:12px;height:12px}
@@ -81,7 +86,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .leaflet-popup-content{margin:10px 12px;font-size:14px;line-height:1.35;min-width:200px}
 .leaflet-popup-content b{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:18px;font-weight:600}
 .leaflet-popup-content .ty{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
-.leaflet-popup-content .links a{display:inline-block;margin:6px 8px 0 0;padding:5px 10px;border-radius:6px;background:var(--chip);color:var(--ink);text-decoration:none;font-weight:600;font-size:13px}
+.leaflet-popup-content .links a{display:inline-block;margin:6px 8px 0 0;padding:8px 12px;min-height:36px;line-height:20px;border-radius:6px;background:var(--chip);color:var(--ink);text-decoration:none;font-weight:600;font-size:13px}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
 .leaflet-popup-close-button{width:30px!important;height:30px!important;font-size:22px!important;line-height:30px!important}
 .marker-cluster-small,.marker-cluster-medium,.marker-cluster-large{background:rgba(122,130,144,.35)}
@@ -101,7 +106,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
   <div class="strip" id="wx"></div>
   <div class="strip" id="fx"></div>
   <canvas id="prof"></canvas>
-  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span class="attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
+  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
@@ -121,6 +126,8 @@ function stageOf(km){ return S.find(s=>km<=s.end_km+1e-6)||S[ND-1]; }
 function nearest(lat,lon){ const cl=Math.cos(lat*Math.PI/180); let best=1e18,bi=0;
   for(let i=0;i<P.length;i++){const dy=(P[i][0]-lat),dx=(P[i][1]-lon)*cl,d=dx*dx+dy*dy; if(d<best){best=d;bi=i;}}
   return {i:bi,km:P[bi][3],dist:Math.sqrt(best)*111.32}; }
+const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function popt(extra){ const hdr=document.querySelector('.hdr .bar').getBoundingClientRect(), sh=sheet.getBoundingClientRect(); return Object.assign({maxWidth:300,autoPanPaddingTopLeft:[10,hdr.bottom+10],autoPanPaddingBottomRight:[10,Math.max(0,innerHeight-sh.top)+10]},extra||{}); }
 const wx=(lat,lon,name)=>`https://oduerr.github.io/weather/?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}&name=${encodeURIComponent(name)}&model=bestmatch&panel=temperature&view=5d`;
 // ---- map ----
 const sheet=$('sheet');
@@ -139,26 +146,32 @@ const routeLines=RT.track.map(s=>L.polyline(s.pts.map(q=>[q[0],q[1]]),{color:MAP
 map.on('zoomend',()=>{ const w=map.getZoom()>=12?5:4; routeLines.forEach(l=>l.setStyle({weight:w})); });
 map.on('click',e=>{ const n=nearest(e.latlng.lat,e.latlng.lng); if(n.dist<=0.4*Math.pow(2,15-map.getZoom())+0.05) setCursor(n.km,true); });
 // ---- places ----
-const PL=RT.places||[]; const TY={camp_site:'Zeltplatz',caravan_site:'Stellplatz (Zelt ok)',alpine_hut:'Berghütte',wilderness_hut:'Schutzhütte',hostel:'Hostel',hotel:'Hotel',guest_house:'Pension / B&B',chalet:'Chalet',apartment:'Ferienwohnung',motel:'Motel'};
+const PL=RT.places||[]; const TY={camp_site:'Zeltplatz',caravan_site:'Stellplatz (Zelt ok)',alpine_hut:'Berghütte',wilderness_hut:'Biwak / Schutzhütte (unbewirtet)',hostel:'Hostel',hotel:'Hotel',guest_house:'Pension / B&B',chalet:'Chalet',apartment:'Ferienwohnung',motel:'Motel'};
 function popup(pl){ const st=stageOf(pl.km); const off=pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m';
-  let h=`<div class="ty">${TY[pl.t]||pl.t}${pl.e?' · am Etappenziel':''}${pl.bc?' · Naturplatz':''}</div><b>${pl.n||TY[pl.t]||'?'}</b><br>km ${pl.km.toFixed(1)} (Tag ${st.day}) · ${off} neben der Route · ${pl.ele} m`;
-  if(pl.o) h+=`<br><span class="ty">Öffnung</span> ${pl.o}`;
-  h+='<div class="links">'; if(pl.w) h+=`<a href="${pl.w.startsWith('http')?pl.w:'https://'+pl.w}" target="_blank" rel="noopener">Website</a>`; if(pl.p) h+=`<a href="tel:${pl.p.replace(/\s/g,'')}">${pl.p}</a>`;
+  const hgt=pl.off>0.3?`Route auf ${pl.ele} m`:`${pl.ele} m`;
+  let h=`<div class="ty">${TY[pl.t]||esc(pl.t)}${pl.e?' · <b style="font-size:12px;color:#1D6E8C">am Etappenziel</b>':''}${pl.bc?' · Naturplatz':''}</div><b>${esc(pl.n||TY[pl.t]||'?')}</b><br>km ${pl.km.toFixed(1)} (Tag ${st.day}) · ${off} neben der Route · ${hgt}`;
+  if(pl.o) h+=`<br><span class="ty">Öffnung</span> ${esc(pl.o)}`;
+  h+='<div class="links">'; if(pl.w) h+=`<a href="${esc(pl.w.startsWith('http')?pl.w:'https://'+pl.w)}" target="_blank" rel="noopener">Website</a>`; if(pl.p) h+=`<a href="tel:${esc(pl.p.replace(/\s/g,''))}">${esc(pl.p)}</a>`;
   h+=`<a href="${wx(pl.lat,pl.lon,pl.n||TY[pl.t])}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${pl.km}" class="tokm">Im Profil</a></div>`; return h; }
-const icon=pl=>L.divIcon({className:'',html:`<div class="pm ${pl.k}${pl.e?' end':''}"></div>`,iconSize:pl.k==='bed'?[10,10]:[16,14],iconAnchor:pl.k==='bed'?[5,5]:[8,7],popupAnchor:[0,-8]});
+const icon=pl=>L.divIcon({className:'',html:`<div class="pmw${pl.e?' end':''}"><div class="pm ${pl.k}"></div></div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
 const campLayer=L.layerGroup().addTo(map), hutLayer=L.layerGroup().addTo(map);
 const bedLayer=L.markerClusterGroup({maxClusterRadius:36,disableClusteringAtZoom:13,showCoverageOnHover:false}).addTo(map);
+const PM=PL.map(pl=>({pl,m:L.marker([pl.lat,pl.lon],{icon:icon(pl),title:pl.n,zIndexOffset:pl.e?300:0}).bindPopup(popup(pl),popt())}));
 function buildPlaces(){ const [a,b]=range(); campLayer.clearLayers(); hutLayer.clearLayers(); bedLayer.clearLayers(); const beds=[];
-  for(const pl of PL){ if(day&&(pl.km<a-2||pl.km>b+2)) continue; const m=L.marker([pl.lat,pl.lon],{icon:icon(pl),title:pl.n}).bindPopup(popup(pl),{maxWidth:280});
-    if(pl.k==='camp') campLayer.addLayer(m); else if(pl.k==='hut') hutLayer.addLayer(m); else beds.push(m); }
+  for(const {pl,m} of PM){ if(day&&(pl.km<a-2||pl.km>b+2)) continue; if(pl.k==='camp') campLayer.addLayer(m); else if(pl.k==='hut'||pl.k==='biv') hutLayer.addLayer(m); else beds.push(m); }
   bedLayer.addLayers(beds); }
+// declutter: beds only from zoom 10, huts from zoom 9 (unless the user switched them off)
+const want={bed:true,hut:true}; map.on('overlayadd',e=>{ if(e.layer===bedLayer) want.bed=true; if(e.layer===hutLayer) want.hut=true; }); map.on('overlayremove',e=>{ if(e.layer===bedLayer&&!auto) want.bed=false; if(e.layer===hutLayer&&!auto) want.hut=false; });
+let auto=false; function declutter(){ const z=map.getZoom(); auto=true; const sb=want.bed&&z>=10, sh=want.hut&&z>=9;
+  if(sb&&!map.hasLayer(bedLayer)) bedLayer.addTo(map); if(!sb&&map.hasLayer(bedLayer)) map.removeLayer(bedLayer); if(sh&&!map.hasLayer(hutLayer)) hutLayer.addTo(map); if(!sh&&map.hasLayer(hutLayer)) map.removeLayer(hutLayer); auto=false; }
+map.on('zoomend',declutter);
 // ---- features + weather ----
 const FE=RT.features||[], WX=RT.weather||[]; const KIND={pass:'Pass',push:'Schiebepassage',note:'Hinweis'};
 function fpopup(f){ const st=stageOf(f.km); let h=`<div class="ty">${KIND[f.k]} · km ${f.km.toFixed(1)} · Tag ${st.day}</div><b>${f.n}</b> <span style="color:var(--muted)">${f.ele} m</span><br>${f.txt}<div class="links">`;
   for(const l of f.links) h+=`<a href="${l.u}" target="_blank" rel="noopener">${l.l}</a>`;
   h+=`<a href="${wx(f.lat,f.lon,f.n)}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${f.km}" class="tokm">Im Profil</a></div>`; return h; }
 const featLayer=L.layerGroup().addTo(map), featMarkers={};
-for(const f of FE){ const m=L.marker([f.lat,f.lon],{icon:L.divIcon({className:'',html:`<div class="pm ${f.k}"></div>`,iconSize:[18,16],iconAnchor:[9,8],popupAnchor:[0,-8]}),title:f.n,zIndexOffset:500}).bindPopup(fpopup(f),{maxWidth:300});
+for(const f of FE){ const m=L.marker([f.lat,f.lon],{icon:L.divIcon({className:'',html:`<div class="pm ${f.k}"></div>`,iconSize:[18,16],iconAnchor:[9,8],popupAnchor:[0,-8]}),title:f.n,zIndexOffset:500}).bindPopup(fpopup(f),popt());
   if(f.k==='pass') m.bindTooltip(`${f.n} ${f.ele} m`,{permanent:true,direction:'right',offset:[8,0],className:'passlbl'});
   featLayer.addLayer(m); featMarkers[f.km]=m; }
 const wxLayer=L.layerGroup(), wxHi=L.layerGroup(), wxAll=L.layerGroup(); let wxOn=true;
@@ -167,19 +180,20 @@ for(const w of WX){ const m=L.marker([w.lat,w.lon],{icon:L.divIcon({className:''
 function wxZoom(){ const z=map.getZoom(); if(!wxOn||z<8){ if(map.hasLayer(wxLayer)) map.removeLayer(wxLayer); return; } if(!map.hasLayer(wxLayer)) wxLayer.addTo(map);
   if(!wxLayer.hasLayer(wxHi)) wxLayer.addLayer(wxHi); if(z>=11&&!wxLayer.hasLayer(wxAll)) wxLayer.addLayer(wxAll); if(z<11&&wxLayer.hasLayer(wxAll)) wxLayer.removeLayer(wxAll); }
 map.on('zoomend',wxZoom); map.on('overlayadd',e=>{ if(e.layer===wxLayer){wxOn=true; wxZoom();} }); map.on('overlayremove',e=>{ if(e.layer===wxLayer) wxOn=false; });
-L.control.layers({'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'OSM':osm},{'Zeltplätze':campLayer,'Hütten & Hostels':hutLayer,'Betten (≤ 1,5 km)':bedLayer,'Pässe & Hinweise':featLayer,'Wetterpunkte':wxLayer},{position:'topright',collapsed:true}).addTo(map);
+L.control.layers({'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'OSM':osm},{'Zeltplätze':campLayer,'Hütten & Biwaks (ab Zoom 9)':hutLayer,'Betten ≤ 1,5 km (ab Zoom 10)':bedLayer,'Pässe & Hinweise':featLayer,'Wetterpunkte':wxLayer},{position:'topright',collapsed:true}).addTo(map);
 // stage-end labels
-for(const st of S){ L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${st.to}</div>`,iconAnchor:[0,0]}),zIndexOffset:600})
+for(const st of S){ L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${st.to}</div>`,iconAnchor:[-7,24]}),zIndexOffset:600})
   .bindPopup(`<div class="ty">Etappenziel Tag ${st.day} · km ${st.end_km}</div><b>${st.to}</b> <span style="color:var(--muted)">${st.ele} m</span><br>${st.from} → ${st.to}: ${st.km} km · ↑ ${st.up} m · ↓ ${st.down} m<div class="links"><a href="#" class="today" data-day="${st.day}">Tag ${st.day} zeigen</a><a href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">Wetter</a></div>`).addTo(map); }
-map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); setCursor(+a.dataset.km,true); sheet.classList.remove('min'); drawProfile();};
+map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); const km=+a.dataset.km; const [ra,rb]=range(); if(km<ra||km>rb) selectDay(stageOf(km).day,true); setCursor(km,true); sheet.classList.remove('min'); drawProfile();};
   const b=el.querySelector('.today'); if(b) b.onclick=ev=>{ev.preventDefault(); selectDay(+b.dataset.day); map.closePopup();}; });
 // ---- strips ----
 function strips(){ const [a,b]=range();
   const wl=WX.filter(w=>day?(w.km>=a-0.1&&w.km<=b+0.1):(w.h||w.km===0||w.km>=TOTAL-1));
   $('wx').innerHTML='<span class="lbl">Wetter</span>'+wl.map(w=>`<a class="${w.h?'hi':''}" href="${wx(w.lat,w.lon,w.n)}" target="_blank" rel="noopener">${w.h?'▲ ':''}${w.n}</a>`).join('');
-  const fl=FE.filter(f=>f.km>=a-0.1&&f.km<=b+0.1); const fx=$('fx'); fx.style.display=fl.length?'':'none';
-  fx.innerHTML='<span class="lbl">Punkte</span>'+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${f.n}</button>`).join('');
-  fx.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const m=featMarkers[+bt.dataset.km]; map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); setCursor(+bt.dataset.km,false); }); }
+  const fl=FE.filter(f=>f.km>=a-0.1&&f.km<=b+0.1); const fx=$('fx'); fx.style.display=(fl.length||day)?'':'none';
+  let hint=''; if(day){ const cs=PL.filter(pl=>pl.k==='camp'&&pl.km>=a-2&&pl.km<=b+2); if(!cs.length){ const nx=PL.find(pl=>pl.k==='camp'&&pl.km>b); hint=`<button data-km="${nx?nx.km:b}" class="hi" style="background:#2E8B57;color:#fff">⛺ kein Zeltplatz auf dieser Etappe${nx?' · nächster bei km '+nx.km.toFixed(0)+' ('+esc(nx.n||'Camping')+')':''}</button>`; } }
+  fx.innerHTML='<span class="lbl">Punkte</span>'+hint+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${esc(f.n)}</button>`).join('');
+  fx.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=P[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
 // ---- cursor ----
 const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[12,12]}),interactive:false}).addTo(map);
 cursor.bindTooltip('',{direction:'top',className:'rt',offset:[0,-6]});
@@ -199,7 +213,7 @@ function selectDay(d,noFit){ day=Math.max(0,Math.min(ND,d|0)); [...chips.childre
   if(!day) stat.innerHTML=`<b>Gesamt</b><span>${Math.round(TOTAL)} km</span><span>↑ ${UP.toLocaleString('de')} m</span><span>↓ ${DN.toLocaleString('de')} m</span><span>${ND} Tage</span><span class="ci" id="ci"></span>`;
   else { const st=S[day-1]; stat.innerHTML=`<b>Tag ${st.day}</b><span>${st.from} → <strong>${st.to}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="ci" id="ci"></span>`; }
   history.replaceState(null,'',day?('#d'+day):location.pathname); if(curKm<a||curKm>b) curKm=a; buildPlaces(); strips(); drawProfile(); updateNav(); }
-window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); const d=h?+h[1]:0; if(d!==day) selectDay(d); });
+window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); if(!h) return; const d=+h[1]; if(d!==day) selectDay(d); });
 // ---- profile ----
 const cv=$('prof'), ctx=cv.getContext('2d');
 function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
@@ -218,9 +232,10 @@ function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, 
   ctx.font='600 11px "Barlow Condensed",system-ui';
   for(const st of S){ if(st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=C_ACC; ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0-4);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle=C_ACC; if(overview){ ctx.textAlign='right'; ctx.fillText(st.day, x-3, T0+6); } else { ctx.textAlign=(x>W-70)?'right':'left'; ctx.fillText(`${st.to} ${st.ele} m`, x+(x>W-70?-3:3), T0+6); } } }
+  const endXs=S.filter(st=>st.end_km>a&&st.end_km<=b+1e-6).map(st=>X(st.end_km));
   if(!overview||W>700){ for(const f of FE){ if(f.k!=='pass'||f.km<a||f.km>b) continue; const x=X(f.km), y=Y(f.ele); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.moveTo(x,y-9); ctx.lineTo(x+4,y-2); ctx.lineTo(x-4,y-2); ctx.closePath(); ctx.fill();
-    if(!overview||f.ele>1300){ ctx.textAlign=x>W-70?'right':'left'; ctx.fillText(`${f.n.replace('Passo ','P. ').replace('Capanne di ','')} ${f.ele}`, x+(x>W-70?-6:6), y-12); } } }
-  for(const pl of PL){ if(pl.k==='bed'||pl.km<a||pl.km>b) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?'#2E8B57':'#8B5A2B'; ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
+    if(!overview||f.ele>1300){ const right=x>W-70; const clash=y-12<T0+14&&endXs.some(ex=>Math.abs(ex-x)<110); ctx.textAlign=right?'right':'left'; ctx.fillText(`${f.n.replace('Passo ','P. ').replace('Capanne di ','')} ${f.ele}`, x+(right?-6:6), clash?y+16:y-12); } } }
+  for(const pl of PL){ if(pl.k==='bed'||pl.km<a||pl.km>b||(overview&&pl.k!=='camp')) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?'#2E8B57':'#8B5A2B'; ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
   if(gps&&gps.km>=a&&gps.km<=b){ const x=X(gps.km); ctx.fillStyle='#1E88E5'; ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(gps.km)][2]),5,0,7); ctx.fill(); }
   if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=C_INK; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill();
     const ci=$('ci'); if(ci){ const st2=stageOf(curKm); ci.textContent=`▸ km ${curKm.toFixed(1)} · ${e} m · noch ${fmtKm(st2.end_km-curKm)} bis ${st2.to}`; } }
@@ -252,15 +267,18 @@ map.on('dragstart zoomstart',()=>{ if(follow){ follow=false; ctl.classList.remov
 function setNav(t,off){ const n=$('nav'); n.textContent=t; n.classList.toggle('off',!!off); }
 function updateNav(){ if(!gps){ if(watchId===null) setNav('GPS aus — ◎ antippen für Standort',true); return; }
   const st=stageOf(gps.km); const off=gps.off>=1?gps.off.toFixed(1).replace('.',',')+' km':Math.round(gps.off*1000)+' m';
-  let nc=null,nb=null; for(const pl of PL){ if(pl.km<gps.km-0.5) continue; if(pl.k==='camp'&&(!nc||pl.km<nc.km)) nc=pl; if(pl.k!=='camp'&&pl.off<=1.0&&(!nb||pl.km<nb.km)) nb=pl; }
-  setNav(`📍 km ${gps.km.toFixed(1)} · ${off} neben Route · noch ${fmtKm(st.end_km-gps.km)} bis ${st.to}`+(nc?` · ⛺ ${fmtKm(nc.km-gps.km)}`:'')+(nb?` · 🛏 ${fmtKm(nb.km-gps.km)}`:''),false); }
+  let nc=null,nb=null; for(const pl of PL){ if(pl.km<gps.km-0.5) continue; if(pl.k==='camp'&&pl.off<=2&&(!nc||pl.km<nc.km)) nc=pl; if(pl.k!=='camp'&&pl.off<=1.0&&(!nb||pl.km<nb.km)) nb=pl; }
+  setNav(`📍 km ${gps.km.toFixed(1)} · ${off} neben Route · noch ${fmtKm(st.end_km-gps.km)} bis ${st.to}`+(nc?` · ⛺ ${fmtKm(nc.km-gps.km)}`:'')+(nb?` · ${nb.k==='bed'?'🛏':'🏠'} ${fmtKm(nb.km-gps.km)}`:''),false); }
 // ---- init ----
 let saved=null; try{ saved=JSON.parse(localStorage.getItem('rt.view')||'null'); }catch(e){}
-const h=location.hash.match(/^#d(\d+)/); selectDay(h?+h[1]:(saved&&saved.day)||0, !h&&saved&&saved.c);
-if(!h&&saved&&saved.c){ try{ map.setView(saved.c,saved.z); }catch(e){} }
+// hash: #d4  |  #d4/46.54,8.76/13  |  #46.54,8.76/13   (day, optional centre/zoom)
+const h=location.hash.match(/^#(?:d(\d+))?\/?(?:(-?[\d.]+),(-?[\d.]+)\/(\d+))?/);
+const hd=h&&h[1]?+h[1]:null, hc=h&&h[2]?[+h[2],+h[3]]:null, hz=h&&h[4]?+h[4]:null;
+selectDay(hd!==null?hd:(hc?day:(saved&&saved.day)||0), !!hc||(hd===null&&saved&&saved.c));
+if(hc){ map.setView(hc,hz||13); } else if(hd===null&&saved&&saved.c){ try{ map.setView(saved.c,saved.z); }catch(e){} }
 let saveT=null; map.on('moveend',()=>{ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem('rt.view',JSON.stringify({day,c:map.getCenter(),z:map.getZoom()})); }catch(e){} },400); });
 document.addEventListener('keydown',e=>{ if(e.key==='ArrowRight') selectDay(day+1); else if(e.key==='ArrowLeft') selectDay(day-1); else if(e.key==='l'||e.key==='L') locateTap(); });
-wxZoom(); window.addEventListener('resize',drawProfile); if(document.fonts) document.fonts.ready.then(drawProfile); setTimeout(drawProfile,60);
+wxZoom(); declutter(); if(innerHeight<600) sheet.classList.add('min'); window.addEventListener('resize',drawProfile); if(document.fonts) document.fonts.ready.then(drawProfile); setTimeout(drawProfile,60);
 })();
 </script>
 </body>
