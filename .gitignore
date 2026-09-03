@@ -1,0 +1,4 @@
+data/track.npy
+data/places_raw.json
+tools/*.log
+.DS_Store

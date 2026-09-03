@@ -1,0 +1,178 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Konstanz → Genova</title>
+<meta name="theme-color" content="#1D6E8C">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap">
+<style>
+:root{--bg:#F2F3EF;--panel:rgba(250,250,247,.94);--ink:#1F2328;--muted:#646A72;--rule:#D4D7D0;--accent:#1D6E8C;
+ --p:#3E4B5E;--g:#C2872A;--t:#C7443A;--ok:#3F8F5B;--gps:#1E88E5;--area:#E3E5DE;--grid:#D0D3CB;--chip:#E6E8E2;--chip-on:#1D6E8C;--chip-on-ink:#fff;}
+@media (prefers-color-scheme: dark){:root{--bg:#15181C;--panel:rgba(28,32,37,.94);--ink:#E8E6E0;--muted:#9AA0A6;--rule:#2E333A;--accent:#5FB3D1;
+ --p:#93A5BE;--g:#E0A448;--t:#E3675D;--ok:#5FBE86;--gps:#4FA3F0;--area:#22272D;--grid:#2E333A;--chip:#2A2F36;--chip-on:#5FB3D1;--chip-on-ink:#0F1418;}}
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;font-size:15px;overflow:hidden}
+#map{position:absolute;inset:0;background:var(--bg)}
+.hdr{position:absolute;top:0;left:0;right:0;z-index:800;pointer-events:none;padding:env(safe-area-inset-top,0) 0 0}
+.hdr .bar{pointer-events:auto;margin:8px 8px 0;background:var(--panel);backdrop-filter:blur(8px);border:1px solid var(--rule);border-radius:10px;padding:6px 10px;display:flex;align-items:center;gap:10px;box-shadow:0 2px 10px rgba(0,0,0,.12)}
+.hdr h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:22px;font-weight:700;margin:0;white-space:nowrap;letter-spacing:.01em}
+.hdr .sub{font-size:12px;color:var(--muted);white-space:nowrap}
+.chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;flex:1;padding:2px 0}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:0 0 auto;border:0;background:var(--chip);color:var(--ink);border-radius:999px;padding:6px 11px;font:600 14px "Barlow Condensed",system-ui,sans-serif;cursor:pointer;min-width:34px}
+.chip.on{background:var(--chip-on);color:var(--chip-on-ink)}
+.sheet{position:absolute;left:0;right:0;bottom:0;z-index:800;background:var(--panel);backdrop-filter:blur(8px);border-top:1px solid var(--rule);box-shadow:0 -2px 12px rgba(0,0,0,.15);padding:0 10px calc(8px + env(safe-area-inset-bottom,0));transition:transform .25s}
+.sheet.min{transform:translateY(calc(100% - 44px))}
+.handle{height:22px;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.handle i{width:38px;height:4px;border-radius:2px;background:var(--rule);display:block}
+.stat{display:flex;gap:14px;align-items:baseline;flex-wrap:wrap;font-variant-numeric:tabular-nums;margin:0 0 4px;min-height:22px}
+.stat b{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:19px;font-weight:600}
+.stat span{color:var(--muted);font-size:13px}
+.stat .cur{margin-left:auto;font-size:13px;color:var(--accent);font-weight:600;white-space:nowrap}
+#prof{display:block;width:100%;height:150px;touch-action:none;border-radius:6px}
+@media (min-width:900px){#prof{height:190px} .sheet{left:auto;right:0;width:min(720px,60vw);bottom:0;border-left:1px solid var(--rule);border-top-left-radius:12px}}
+.legend{display:flex;gap:12px;font-size:12px;color:var(--muted);margin-top:4px;flex-wrap:wrap}
+.legend i{display:inline-block;width:18px;height:4px;border-radius:2px;vertical-align:middle;margin-right:4px}
+.leaflet-control-locate a{font-size:18px;line-height:30px;text-align:center;display:block;width:30px;height:30px;cursor:pointer;text-decoration:none;color:#333}
+.leaflet-control-locate.on a{color:var(--gps);font-weight:700}
+.leaflet-container{font:inherit}
+.leaflet-tooltip.rt{font-variant-numeric:tabular-nums;font-size:13px}
+.gpsdot{background:var(--gps);border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(30,136,229,.35)}
+.cursordot{background:var(--ink);border:2px solid #fff;border-radius:50%}
+.stagelbl{background:var(--panel);border:1px solid var(--rule);border-radius:6px;padding:1px 6px;font:600 12px "Barlow Condensed",system-ui,sans-serif;white-space:nowrap;box-shadow:0 1px 4px rgba(0,0,0,.15)}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div class="hdr"><div class="bar">
+  <div><h1>Konstanz → Genova</h1><div class="sub" id="sub">667 km · 7 800 m</div></div>
+  <div class="chips" id="chips"></div>
+</div></div>
+<div class="sheet" id="sheet">
+  <div class="handle" id="handle"><i></i></div>
+  <div class="stat" id="stat"></div>
+  <canvas id="prof"></canvas>
+  <div class="legend"><span><i style="background:var(--p)"></i>Asphalt</span><span><i style="background:var(--g)"></i>Schotter</span><span><i style="background:var(--t)"></i>Pfad / schieben</span><span><i style="background:var(--gps);height:8px;width:8px;border-radius:50%"></i>Standort</span></div>
+</div>
+<script src="vendor/leaflet/leaflet.js"></script>
+<script src="data/data.js"></script>
+<script>
+(function(){
+const RT=window.RT, S=RT.stages, css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const COL={p:'--p',g:'--g',t:'--t'};
+// ---- flatten points ----
+const P=[]; for(const s of RT.track){ for(const q of s.pts){ if(!P.length||q[3]>P[P.length-1][3]) P.push([q[0],q[1],q[2],q[3],s.c]); } }
+const TOTAL=P[P.length-1][3];
+function idxAtKm(km){ let lo=0,hi=P.length-1; while(lo<hi){const m=(lo+hi)>>1; if(P[m][3]<km) lo=m+1; else hi=m;} return lo; }
+// ---- map ----
+const map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:true});
+L.control.zoom({position:'topright'}).addTo(map);
+const topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap, SRTM · © OpenTopoMap (CC-BY-SA)'});
+const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
+const swiss=L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',{maxZoom:18,attribution:'© swisstopo'});
+const sat=L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',{maxZoom:19,attribution:'© Esri, Maxar'});
+topo.addTo(map);
+L.control.layers({'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'OSM':osm},null,{position:'topright'}).addTo(map);
+// ---- route ----
+const routeLayer=L.layerGroup().addTo(map);
+for(const s of RT.track){ const ll=s.pts.map(q=>[q[0],q[1]]);
+  L.polyline(ll,{color:'#fff',weight:7,opacity:.75,interactive:false}).addTo(routeLayer); }
+for(const s of RT.track){ const ll=s.pts.map(q=>[q[0],q[1]]);
+  L.polyline(ll,{color:css(COL[s.c]||'--p'),weight:4,opacity:.95}).on('click',e=>setCursor(nearestKm(e.latlng.lat,e.latlng.lng).km,true)).addTo(routeLayer); }
+// stage-end labels
+for(const st of S){ L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${st.to}</div>`,iconAnchor:[0,0]}),interactive:false}).addTo(map); }
+// ---- cursor + gps ----
+const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[12,12]}),interactive:false}).addTo(map);
+cursor.bindTooltip('',{permanent:false,direction:'top',className:'rt',offset:[0,-6]});
+let gps=null, gpsCircle=null, follow=false, watchId=null, curKm=0;
+function nearestKm(lat,lon){ // brute force, fine for 15k points
+  const cl=Math.cos(lat*Math.PI/180); let best=1e18,bi=0;
+  for(let i=0;i<P.length;i++){const dy=(P[i][0]-lat),dx=(P[i][1]-lon)*cl,d=dx*dx+dy*dy; if(d<best){best=d;bi=i;}}
+  return {i:bi,km:P[bi][3],dist:Math.sqrt(best)*111.32}; }
+function fmtKm(x){return x.toFixed(1).replace('.',',')+' km';}
+function stageOf(km){ return S.find(s=>km<=s.end_km+1e-6)||S[S.length-1]; }
+function setCursor(km,openTip){ curKm=km; const i=idxAtKm(km), p=P[i]; cursor.setLatLng([p[0],p[1]]);
+  const st=stageOf(km); const rem=st.end_km-km;
+  cursor.setTooltipContent(`km ${km.toFixed(1)} · ${p[2]} m<br>Tag ${st.day}: noch ${fmtKm(rem)} bis ${st.to}`); if(openTip) cursor.openTooltip();
+  drawProfile(); }
+// ---- day chips ----
+let day=0; const chips=document.getElementById('chips');
+function chip(label,d){const b=document.createElement('button');b.className='chip';b.textContent=label;b.onclick=()=>selectDay(d);chips.appendChild(b);return b;}
+chip('Alle',0); for(const st of S) chip(String(st.day),st.day);
+function range(){ if(!day) return [0,TOTAL]; const st=S[day-1]; return [st.start_km,st.end_km]; }
+function selectDay(d,noFit){ day=d; [...chips.children].forEach((c,i)=>c.classList.toggle('on',i===d));
+  const [a,b]=range(); const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]);
+  if(!noFit) map.fitBounds(L.latLngBounds(pts),{padding:[30,30]});
+  const stat=document.getElementById('stat');
+  if(!day){ const up=S.reduce((x,s)=>x+s.up,0), dn=S.reduce((x,s)=>x+s.down,0);
+    stat.innerHTML=`<b>Gesamt</b><span>${TOTAL.toFixed(0)} km</span><span>↑ ${up.toLocaleString('de')} m</span><span>↓ ${dn.toLocaleString('de')} m</span><span>10 Tage</span><span class="cur" id="cur"></span>`; }
+  else { const st=S[day-1];
+    stat.innerHTML=`<b>Tag ${st.day}</b><span>${st.from} → <strong>${st.to}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="cur" id="cur"></span>`; }
+  location.hash=day?('d'+day):''; if(curKm<a||curKm>b) curKm=a; drawProfile(); updateCur(); }
+// ---- profile ----
+const cv=document.getElementById('prof'), ctx=cv.getContext('2d');
+function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
+  if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;} ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
+  const [a,b]=range(), L0=34,R0=8,T0=10,B0=18; const i0=idxAtKm(a), i1=idxAtKm(b);
+  let emin=1e9,emax=-1e9; for(let i=i0;i<=i1;i++){emin=Math.min(emin,P[i][2]);emax=Math.max(emax,P[i][2]);}
+  emin=Math.floor(Math.max(0,emin-50)/100)*100; emax=Math.ceil((emax+80)/100)*100;
+  const X=km=>L0+(km-a)/(b-a)*(W-L0-R0), Y=e=>T0+(1-(e-emin)/(emax-emin))*(H-T0-B0);
+  ctx.strokeStyle=css('--grid'); ctx.lineWidth=1; ctx.fillStyle=css('--muted'); ctx.font='11px system-ui'; ctx.textAlign='right';
+  const step=(emax-emin)>1500?500:(emax-emin)>600?250:100;
+  for(let e=emin;e<=emax;e+=step){ ctx.beginPath();ctx.moveTo(L0,Y(e));ctx.lineTo(W-R0,Y(e));ctx.stroke(); ctx.fillText(e,L0-4,Y(e)+4); }
+  // area
+  ctx.beginPath(); ctx.moveTo(X(a),Y(emin)); for(let i=i0;i<=i1;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(b),Y(emin)); ctx.closePath(); ctx.fillStyle=css('--area'); ctx.fill();
+  // colored line by class
+  ctx.lineWidth=2.4; let cur=null; for(let i=i0;i<=i1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=css(COL[c]||'--p'); if(i>i0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke();
+  // km axis
+  ctx.fillStyle=css('--muted'); ctx.textAlign='center'; const kstep=(b-a)>300?100:(b-a)>120?20:10;
+  for(let k=Math.ceil(a/kstep)*kstep;k<=b;k+=kstep){ ctx.fillText(k+(k===Math.ceil(a/kstep)*kstep?' km':''),X(k),H-4); }
+  // stage ends
+  ctx.font='600 11px "Barlow Condensed",system-ui'; ctx.fillStyle=css('--ink');
+  for(const st of S){ if(st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=css('--accent'); ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
+    ctx.textAlign= (x>W-60)?'right':'left'; ctx.fillText(`${st.to} ${st.ele} m`, x+(x>W-60?-3:3), T0+10); } }
+  // gps tick
+  if(gps){ const k=gps.km; if(k>=a&&k<=b){ const x=X(k); ctx.fillStyle=css('--gps'); ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(k)][2]),5,0,7); ctx.fill(); } }
+  // cursor
+  if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=css('--ink'); ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke();
+    ctx.fillStyle=css('--ink'); ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill();
+    ctx.font='600 12px "Barlow Condensed",system-ui'; ctx.textAlign=x>W-90?'right':'left'; ctx.fillText(`km ${curKm.toFixed(1)} · ${e} m`, x+(x>W-90?-6:6), Math.max(T0+22,Y(e)-8)); }
+  cv._X={a,b,L0,R0,W}; }
+function kmFromEvent(ev){ const r=cv.getBoundingClientRect(), x=(ev.touches?ev.touches[0].clientX:ev.clientX)-r.left; const {a,b,L0,R0,W}=cv._X; return Math.min(b,Math.max(a,a+(x-L0)/(W-L0-R0)*(b-a))); }
+let dragging=false;
+cv.addEventListener('pointerdown',e=>{dragging=true;cv.setPointerCapture(e.pointerId);setCursor(kmFromEvent(e),true);});
+cv.addEventListener('pointermove',e=>{ if(dragging||e.pointerType==='mouse') setCursor(kmFromEvent(e),true); });
+cv.addEventListener('pointerup',()=>{dragging=false;}); cv.addEventListener('pointercancel',()=>{dragging=false;});
+cv.addEventListener('dblclick',()=>{ const p=P[idxAtKm(curKm)]; map.setView([p[0],p[1]],Math.max(map.getZoom(),14)); });
+// ---- sheet ----
+const sheet=document.getElementById('sheet'); document.getElementById('handle').onclick=()=>{sheet.classList.toggle('min'); setTimeout(drawProfile,260);};
+// ---- locate control ----
+const Locate=L.Control.extend({onAdd(){ const d=L.DomUtil.create('div','leaflet-bar leaflet-control leaflet-control-locate'); const a=L.DomUtil.create('a','',d); a.href='#'; a.title='Standort'; a.innerHTML='◎';
+  L.DomEvent.on(a,'click',e=>{L.DomEvent.stop(e); toggleLocate(d);}); this._d=d; return d; }});
+new Locate({position:'topright'}).addTo(map);
+function toggleLocate(d){ if(watchId!==null){ navigator.geolocation.clearWatch(watchId); watchId=null; follow=false; d.classList.remove('on'); return; }
+  if(!navigator.geolocation){ alert('Kein GPS im Browser. Auf dem Handy braucht die Seite https.'); return; }
+  d.classList.add('on'); follow=true;
+  watchId=navigator.geolocation.watchPosition(pos=>{ const {latitude:la,longitude:lo,accuracy:acc}=pos.coords; const n=nearestKm(la,lo);
+    gps={lat:la,lon:lo,acc,km:n.km,off:n.dist};
+    if(!gpsCircle){ gpsCircle=L.circle([la,lo],{radius:acc,color:css('--gps'),weight:1,fillOpacity:.12,interactive:false}).addTo(map);
+      gps.m=L.marker([la,lo],{icon:L.divIcon({className:'gpsdot',iconSize:[14,14]}),interactive:false,zIndexOffset:1000}).addTo(map); window._gpsm=gps.m; }
+    else { gpsCircle.setLatLng([la,lo]).setRadius(acc); window._gpsm.setLatLng([la,lo]); }
+    if(follow) map.setView([la,lo],Math.max(map.getZoom(),14),{animate:true});
+    updateCur(); drawProfile(); },
+   err=>{ alert('Standort nicht verfügbar: '+err.message); d.classList.remove('on'); watchId=null; },
+   {enableHighAccuracy:true,maximumAge:5000,timeout:20000}); }
+map.on('dragstart',()=>{follow=false;});
+function updateCur(){ const el=document.getElementById('cur'); if(!el) return; if(!gps){ el.textContent=''; return; }
+  const st=stageOf(gps.km); const off=gps.off>=1?gps.off.toFixed(1)+' km':Math.round(gps.off*1000)+' m';
+  el.textContent=`📍 km ${gps.km.toFixed(1)} · ${off} neben der Route · noch ${fmtKm(st.end_km-gps.km)} bis ${st.to}`; }
+// ---- init ----
+const h=location.hash.match(/^#d(\d+)/); selectDay(h?Math.min(10,+h[1]):0);
+window.addEventListener('resize',drawProfile); if(document.fonts) document.fonts.ready.then(drawProfile);
+setTimeout(drawProfile,50);
+})();
+</script>
+</body>
+</html>
