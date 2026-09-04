@@ -100,7 +100,7 @@ body.big .gpsdot{transform:scale(1.5)}
 .leaflet-container{font:inherit}
 .leaflet-tooltip.rt{font-variant-numeric:tabular-nums;font-size:13px}
 .gpsdot{background:#1E88E5;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(30,136,229,.35)}
-.cursordot{background:#1F2328;border:2px solid #fff;border-radius:50%}
+.cursordot{background:#1F2328;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #000;cursor:pointer}
 .pmw{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .pmw.end{box-shadow:0 0 0 3px #1D6E8C;background:rgba(29,110,140,.12)}
 .pm{width:14px;height:14px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.35);box-sizing:border-box}
@@ -119,6 +119,9 @@ body.big .gpsdot{transform:scale(1.5)}
 .leaflet-popup-content{margin:10px 12px;font-size:14px;line-height:1.35;min-width:200px}
 .leaflet-popup-content b{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:18px;font-weight:600}
 .leaflet-popup-content .ty{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.06em}
+.leaflet-popup-content .ext{margin-top:6px;line-height:1.9}
+.leaflet-popup-content .ext .ty{margin-right:6px}
+.leaflet-popup-content .ext a{display:inline-block;margin:0 4px 4px 0;padding:2px 8px;border-radius:5px;background:var(--chip);color:var(--ink);text-decoration:none;font-size:12.5px;font-weight:600}
 .leaflet-popup-content .links a{display:inline-block;margin:6px 8px 0 0;padding:8px 12px;min-height:36px;line-height:20px;border-radius:6px;background:var(--chip);color:var(--ink);text-decoration:none;font-weight:600;font-size:13px}
 .leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}
 .leaflet-popup-close-button{width:30px!important;height:30px!important;font-size:22px!important;line-height:30px!important}
@@ -170,6 +173,18 @@ function nearest(lat,lon){ const cl=Math.cos(lat*Math.PI/180); let best=1e18,bi=
   return {i:bi,km:P[bi][3],dist:Math.sqrt(best)*111.32}; }
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function popt(extra){ const hdr=document.querySelector('.hdr .bar').getBoundingClientRect(), sh=sheet.getBoundingClientRect(); return Object.assign({maxWidth:300,autoPanPaddingTopLeft:[10,hdr.bottom+10],autoPanPaddingBottomRight:[10,Math.max(0,innerHeight-sh.top)+10]},extra||{}); }
+function ext(lat,lon,name,o){ o=o||{}; const la=lat.toFixed(5), lo=lon.toFixed(5), q=`${la},${lo}`; const L_=[];
+  L_.push(['Google Maps',`https://www.google.com/maps/search/?api=1&query=${q}`],['Street View',`https://www.google.com/maps/@?api=1&map_action=pano&viewpoint=${q}`],
+    ['Satellit',`https://www.google.com/maps/@${q},600m/data=!3m1!1e3`],['Mapillary',`https://www.mapillary.com/app/?lat=${la}&lng=${lo}&z=15`],
+    ['Flickr',`https://www.flickr.com/map/?fLat=${la}&fLon=${lo}&zl=14`],['Commons',`https://commons.wikimedia.org/wiki/Special:Nearby#/coord/${q}`]);
+  const K=[['Komoot',`https://www.komoot.com/discover/Tour/@${q}/tours?sport=mtb&map=true`],['Strava-Heatmap',`https://www.strava.com/maps/global-heatmap?sport=All&style=standard#14/${la}/${lo}`],['OSM',`https://www.openstreetmap.org/?mlat=${la}&mlon=${lo}#map=15/${la}/${lo}`]];
+  if(lat>45.8&&lon<10.5&&lat<47.9) K.push(['swisstopo (CH)',swissUrl(lat,lon)]);
+  if(o.peak) K.push(['PeakFinder',`https://www.peakfinder.com/?lat=${la}&lng=${lo}&azi=180&zoom=4`]);
+  const row=(t,arr)=>`<div class="ext"><span class="ty">${t}</span>${arr.map(([l,u])=>`<a href="${u}" target="_blank" rel="noopener">${l}</a>`).join('')}</div>`;
+  return row('Fotos',L_)+row('Karten',K); }
+function swissUrl(lat,lon){ const phi=lat*3600, lam=lon*3600, p=(phi-169028.66)/1e4, l=(lam-26782.5)/1e4;
+  const E=2600072.37+211455.93*l-10938.51*l*p-0.36*l*p*p-44.54*l**3, N=1200147.07+308807.95*p+3745.25*l*l+76.63*p*p-194.56*l*l*p+119.79*p**3;
+  return `https://map.geo.admin.ch/#/map?lang=de&center=${E.toFixed(0)},${N.toFixed(0)}&z=9&bgLayer=ch.swisstopo.swissimage&layers=ch.swisstopo.swisstlm3d-wanderwege`; }
 const wx=(lat,lon,name)=>`https://oduerr.github.io/weather/?lat=${lat.toFixed(5)}&lon=${lon.toFixed(5)}&name=${encodeURIComponent(name)}&model=bestmatch&panel=temperature&view=5d`;
 // ---- map ----
 const sheet=$('sheet');
@@ -196,7 +211,7 @@ function popup(pl){ const st=stageOf(pl.km); const off=pl.off>=1?pl.off.toFixed(
   let h=`<div class="ty">${TY[pl.t]||esc(pl.t)}${pl.e?' · <b style="font-size:12px;color:#1D6E8C">am Etappenziel</b>':''}${pl.bc?' · Naturplatz':''}</div><b>${esc(pl.n||TY[pl.t]||'?')}</b><br>km ${pl.km.toFixed(1)} (Tag ${st.day}) · ${off} neben der Route · ${hgt}`;
   if(pl.o) h+=`<br><span class="ty">Öffnung</span> ${esc(pl.o)}`;
   h+='<div class="links">'; if(pl.w) h+=`<a href="${esc(pl.w.startsWith('http')?pl.w:'https://'+pl.w)}" target="_blank" rel="noopener">Website</a>`; if(pl.p) h+=`<a href="tel:${esc(pl.p.replace(/\s/g,''))}">${esc(pl.p)}</a>`;
-  h+=`<a href="${wx(pl.lat,pl.lon,pl.n||TY[pl.t])}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${pl.km}" class="tokm">Im Profil</a></div>`; return h; }
+  h+=`<a href="${wx(pl.lat,pl.lon,pl.n||TY[pl.t])}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${pl.km}" class="tokm">Im Profil</a></div>`+ext(pl.lat,pl.lon,pl.n); return h; }
 const icon=pl=>L.divIcon({className:'',html:`<div class="pmw${pl.e?' end':''}"><div class="pm ${pl.k}"></div></div>`,iconSize:[28,28],iconAnchor:[14,14],popupAnchor:[0,-12]});
 const campLayer=L.layerGroup().addTo(map), hutLayer=L.layerGroup().addTo(map);
 const bedLayer=L.markerClusterGroup({maxClusterRadius:36,disableClusteringAtZoom:13,showCoverageOnHover:false}).addTo(map);
@@ -216,7 +231,7 @@ map.on('zoomend',declutter);
 const FE=RT.features||[], WX=RT.weather||[]; const KIND={pass:'Pass',push:'Schiebepassage',note:'Hinweis'};
 function fpopup(f){ const st=stageOf(f.km); let h=`<div class="ty">${KIND[f.k]} · km ${f.km.toFixed(1)} · Tag ${st.day}</div><b>${f.n}</b> <span style="color:var(--muted)">${f.ele} m</span><br>${f.txt}<div class="links">`;
   for(const l of f.links) h+=`<a href="${l.u}" target="_blank" rel="noopener">${l.l}</a>`;
-  h+=`<a href="${wx(f.lat,f.lon,f.n)}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${f.km}" class="tokm">Im Profil</a></div>`; return h; }
+  h+=`<a href="${wx(f.lat,f.lon,f.n)}" target="_blank" rel="noopener">Wetter</a><a href="#" data-km="${f.km}" class="tokm">Im Profil</a></div>`+ext(f.lat,f.lon,f.n,{peak:f.k==='pass'}); return h; }
 const featLayer=L.layerGroup().addTo(map), featMarkers={};
 for(const f of FE){ const m=L.marker([f.lat,f.lon],{icon:L.divIcon({className:'',html:`<div class="pm ${f.k}"></div>`,iconSize:[18,16],iconAnchor:[9,8],popupAnchor:[0,-8]}),title:f.n,zIndexOffset:500}).bindPopup(fpopup(f),popt());
   if(f.k==='pass') m.bindTooltip(`${f.n} ${f.ele} m`,{permanent:true,direction:'right',offset:[8,0],className:'passlbl',interactive:true});
@@ -229,7 +244,7 @@ const wxLayer=L.layerGroup(), wxHi=L.layerGroup(), wxAll=L.layerGroup(); let wxO
 const nearPassOrEnd=w=>FE.some(f=>f.k==='pass'&&Math.abs(f.km-w.km)<0.6)||S.some(st=>Math.abs(st.end_km-w.km)<0.6);
 const offEle=w=>{ const f=FE.find(f=>f.k==='pass'&&Math.abs(f.km-w.km)<0.6); return f?f.ele:w.ele; };
 for(const w of WX){ if(nearPassOrEnd(w)) continue; const m=L.marker([w.lat,w.lon],{icon:L.divIcon({className:'',html:`<div class="wxm${w.h?' hi':''}">☁ ${w.n}</div>`,iconAnchor:[0,10]}),zIndexOffset:w.h?400:100});
-  m.bindPopup(`<div class="ty">Wetter · km ${w.km} · ${offEle(w)} m</div><b>${w.n}</b><div class="links"><a href="${wx(w.lat,w.lon,w.n)}" target="_blank" rel="noopener">5-Tage-Wetter öffnen</a></div>`); (w.h?wxHi:wxAll).addLayer(m); }
+  m.bindPopup(`<div class="ty">Wetter · km ${w.km} · ${offEle(w)} m</div><b>${esc(w.n)}</b><div class="links"><a href="${wx(w.lat,w.lon,w.n)}" target="_blank" rel="noopener">5-Tage-Wetter öffnen</a></div>`+ext(w.lat,w.lon,w.n,{peak:!!w.h}),popt()); (w.h?wxHi:wxAll).addLayer(m); }
 function wxZoom(){ const z=map.getZoom(); wxAuto=true; try{ if(!wxOn||z<8){ if(map.hasLayer(wxLayer)) map.removeLayer(wxLayer); return; } if(!map.hasLayer(wxLayer)) wxLayer.addTo(map);
   if(!wxLayer.hasLayer(wxHi)) wxLayer.addLayer(wxHi); if(z>=11&&!wxLayer.hasLayer(wxAll)) wxLayer.addLayer(wxAll); if(z<11&&wxLayer.hasLayer(wxAll)) wxLayer.removeLayer(wxAll); } finally { wxAuto=false; } }
 map.on('zoomend',wxZoom); map.on('overlayadd',e=>{ if(e.layer===wxLayer&&!wxAuto){wxOn=true; wxZoom();} }); map.on('overlayremove',e=>{ if(e.layer===wxLayer&&!wxAuto) wxOn=false; });
@@ -238,7 +253,7 @@ L.control.layers({'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'
 for(const st of S){ const m=L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${esc(st.to)}</div>`,iconAnchor:[-7,24]}),zIndexOffset:600}); stageMarkers.push({m,st}); m
   .bindPopup(()=>{ const lo=PL.filter(pl=>pl.e&&Math.abs(pl.km-st.end_km)<=4).sort((x,y)=>(x.k==='camp'?0:x.k==='bed'?2:1)-(y.k==='camp'?0:y.k==='bed'?2:1)||x.off-y.off);
     const li=lo.map(pl=>`<div>${pl.k==='camp'?'⛺':pl.k==='bed'?'🛏':'🏠'} ${esc(pl.n||TY[pl.t])} <span style="color:var(--muted)">${pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m'}</span>${pl.p?` · <a href="tel:${esc(pl.p.replace(/\s/g,''))}">${esc(pl.p)}</a>`:''}</div>`).join('');
-    return `<div class="ty">Etappenziel Tag ${st.day} · km ${st.end_km}</div><b>${esc(st.to)}</b> <span style="color:var(--muted)">${st.ele} m</span><br>${esc(st.from)} → ${esc(st.to)}: ${st.km} km · ↑ ${st.up} m · ↓ ${st.down} m${li?`<div style="margin-top:6px;font-size:13px">${li}</div>`:'<div style="margin-top:6px;font-size:13px;color:var(--muted)">Keine Unterkunft im Umkreis erfasst</div>'}<div class="links"><a href="#" class="today" data-day="${st.day}">Tag ${st.day} zeigen</a><a href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">Wetter</a></div>`; },popt()).addTo(map); }
+    return `<div class="ty">Etappenziel Tag ${st.day} · km ${st.end_km}</div><b>${esc(st.to)}</b> <span style="color:var(--muted)">${st.ele} m</span><br>${esc(st.from)} → ${esc(st.to)}: ${st.km} km · ↑ ${st.up} m · ↓ ${st.down} m${li?`<div style="margin-top:6px;font-size:13px">${li}</div>`:'<div style="margin-top:6px;font-size:13px;color:var(--muted)">Keine Unterkunft im Umkreis erfasst</div>'}<div class="links"><a href="#" class="today" data-day="${st.day}">Tag ${st.day} zeigen</a><a href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">Wetter</a></div>`+ext(st.lat,st.lon,st.to); },popt()).addTo(map); }
 map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); const km=+a.dataset.km; const [ra,rb]=range(); if(km<ra||km>rb) selectDay(stageOf(km).day,true); setCursor(km,true); sheet.classList.remove('min'); drawProfile();};
   const b=el.querySelector('.today'); if(b) b.onclick=ev=>{ev.preventDefault(); selectDay(+b.dataset.day); map.closePopup();}; });
 // ---- strips ----
@@ -251,8 +266,10 @@ function strips(){ const [a,b]=range();
   fx.innerHTML='<span class="lbl">Punkte</span>'+hint+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${esc(f.n)}</button>`).join('');
   fx.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=P[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
 // ---- cursor ----
-const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[12,12]}),interactive:false}).addTo(map);
-cursor.bindTooltip('',{direction:'top',className:'rt',offset:[0,-6]});
+const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[16,16]}),zIndexOffset:900,title:'Punkt auf der Route – antippen für Links'}).addTo(map);
+cursor.bindPopup(()=>{ const i=idxAtKm(curKm), q=P[i], st=stageOf(curKm); return `<div class="ty">Punkt auf der Route · Tag ${st.day}</div><b>km ${curKm.toFixed(1)} · ${q[2]} m</b><br>noch ${fmtKm(st.end_km-curKm)} bis ${esc(st.to)}<div class="links"><a href="${wx(q[0],q[1],'km '+curKm.toFixed(1))}" target="_blank" rel="noopener">Wetter</a><a href="#" class="share" data-km="${curKm.toFixed(1)}">Link kopieren</a></div>`+ext(q[0],q[1],'km '+curKm.toFixed(1)); },popt());
+map.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('.share'); if(a) a.onclick=ev=>{ ev.preventDefault(); const q=P[idxAtKm(curKm)]; const u=location.origin+location.pathname+`#d${stageOf(curKm).day}/${q[0].toFixed(5)},${q[1].toFixed(5)}/15/p`; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{a.textContent='Kopiert ✓';},()=>{prompt('Link:',u);}); }; });
+cursor.bindTooltip('',{direction:'top',className:'rt',offset:[0,-8]});
 let curKm=0;
 function setCursor(km,openTip){ curKm=km; const i=idxAtKm(km), p=P[i]; cursor.setLatLng([p[0],p[1]]); const st=stageOf(km);
   cursor.setTooltipContent(`km ${km.toFixed(1)} · ${p[2]} m<br>Tag ${st.day}: noch ${fmtKm(st.end_km-km)} bis ${st.to}`); if(openTip) cursor.openTooltip(); drawProfile(); }
@@ -338,10 +355,10 @@ function updateNav(){ if(!gps){ if(watchId===null){ const st=stageOf(curKm), e=P
 // ---- init ----
 let saved=null; try{ saved=JSON.parse(localStorage.getItem('rt.view')||'null'); }catch(e){}
 // hash: #d4  |  #d4/46.54,8.76/13  |  #46.54,8.76/13   (day, optional centre/zoom)
-const h=location.hash.match(/^#(?:d(\d+))?\/?(?:(-?[\d.]+),(-?[\d.]+)\/(\d+))?/);
+const h=location.hash.match(/^#(?:d(\d+))?\/?(?:(-?[\d.]+),(-?[\d.]+)\/(\d+))?(\/p)?/);
 const hd=h&&h[1]?+h[1]:null, hc=h&&h[2]?[+h[2],+h[3]]:null, hz=h&&h[4]?+h[4]:null;
 selectDay(hd!==null?hd:(hc?day:(saved&&saved.day)||0), !!hc||(hd===null&&saved&&saved.c));
-if(hc){ map.setView(hc,hz||13); } else if(hd===null&&saved&&saved.c){ try{ map.setView(saved.c,saved.z); }catch(e){} }
+if(hc){ map.setView(hc,hz||13); if(h[5]){ const n=nearest(hc[0],hc[1]); setCursor(n.km,false); setTimeout(()=>cursor.openPopup(),400); } } else if(hd===null&&saved&&saved.c){ try{ map.setView(saved.c,saved.z); }catch(e){} }
 let saveT=null; map.on('moveend',()=>{ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem('rt.view',JSON.stringify({day,c:map.getCenter(),z:map.getZoom()})); }catch(e){} },400); });
 document.addEventListener('keydown',e=>{ if(e.metaKey||e.ctrlKey||e.altKey) return; const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return; if(e.key==='ArrowRight'&&day<ND) selectDay(day+1); else if(e.key==='ArrowLeft'&&day>0) selectDay(day-1); else if(e.key==='l'||e.key==='L') locateTap(); });
 wxZoom(); declutter(); relabel(); routeStyle(); if(innerHeight<600) sheet.classList.add('min'); window.addEventListener('resize',drawProfile); if(document.fonts) document.fonts.ready.then(drawProfile); setTimeout(drawProfile,60);

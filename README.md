@@ -7,6 +7,7 @@ Interactive map for the September 2026 gravel trip. Live: **https://oduerr.githu
   tour descriptions, weather links to the `weather` app, GPS position with distance to tonight's stop.
 - Hash: `#d4` (day), `#d4/46.54,8.76/14` (day + centre/zoom). View and day persist in localStorage.
 - ⚙ menu: high-contrast mode (large type, thick line — for reading while riding), big symbols (1.7×), show beds/huts at every zoom (planning). Stored in localStorage.
+- Every popup (places, passes, stage ends, weather points) and the route cursor (tap the dot, or `#d5/lat,lon/14/p`) carry a **Fotos / Karten** row: Google Maps, Street View, satellite, Mapillary, Flickr, Wikimedia Commons, Komoot, Strava heatmap, OSM, swisstopo (CH), PeakFinder (passes). "Link kopieren" copies a share link to that point.
 - Keyboard on PC: ← → change day, `l` locate. Add to home screen on the phone (PWA manifest).
 
 ## Files
