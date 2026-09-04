@@ -10,9 +10,9 @@ typeset -a SPOTS
 SPOTS=(
  "01_Kunkelspass|2|46.885,9.425|13"
  "02_Lukmanier-Uomo-Piora|4|46.560,8.760|12"
- "03_Val-Termine-Uomo-Detail|4|46.552,8.770|14"
+ "03_Val-Termine-Uomo-Detail|4|46.548,8.768|13"
  "04_Bedretto-SanGiacomo-Toggia|5|46.470,8.440|12"
- "05_SanGiacomo-Detail|5|46.471,8.441|14"
+ "05_SanGiacomo-Detail|5|46.468,8.441|13"
  "06_Marcarolo|10|44.575,8.720|13"
 )
 for s in $SPOTS; do
