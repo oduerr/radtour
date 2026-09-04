@@ -6,6 +6,7 @@ Interactive map for the September 2026 gravel trip. Live: **https://oduerr.githu
   profile coupled to the map, campsites / huts / beds (OSM), passes and push sections with links to
   tour descriptions, weather links to the `weather` app, GPS position with distance to tonight's stop.
 - Hash: `#d4` (day), `#d4/46.54,8.76/14` (day + centre/zoom). View and day persist in localStorage.
+- ⚙ menu: high-contrast mode (large type, thick line — for reading while riding), big symbols (1.7×), show beds/huts at every zoom (planning). Stored in localStorage.
 - Keyboard on PC: ← → change day, `l` locate. Add to home screen on the phone (PWA manifest).
 
 ## Files
