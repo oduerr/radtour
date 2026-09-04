@@ -203,7 +203,7 @@ const routeLines=RT.track.map(s=>L.polyline(s.pts.map(q=>[q[0],q[1]]),{color:MAP
 const casing=RT.track.map((s,i)=>routeLayer.getLayers()[i]);
 function routeStyle(){ const z=map.getZoom(); const w=(z>=12?5:4)+(OPT.hc?3:0); routeLines.forEach(l=>l.setStyle({weight:w})); casing.forEach(l=>l.setStyle({weight:w+4,color:OPT.hc?'#000':'#fff',opacity:OPT.hc?.9:.8})); }
 map.on('zoomend',routeStyle);
-map.on('click',e=>{ const n=nearest(e.latlng.lat,e.latlng.lng); const q=P[n.i]; const px=map.latLngToContainerPoint([q[0],q[1]]).distanceTo(map.latLngToContainerPoint(e.latlng)); if(px<=24) setCursor(n.km,true); });
+map.on('click',e=>{ const n=nearest(e.latlng.lat,e.latlng.lng); const q=P[n.i]; const px=map.latLngToContainerPoint([q[0],q[1]]).distanceTo(map.latLngToContainerPoint(e.latlng)); if(px<=28){ setCursor(n.km,false); cursor.closeTooltip(); cursor.openPopup(); } });
 // ---- places ----
 const PL=RT.places||[]; const TY={camp_site:'Zeltplatz',caravan_site:'Stellplatz (Zelt ok)',alpine_hut:'Berghütte',wilderness_hut:'Biwak / Schutzhütte (unbewirtet)',hostel:'Hostel',hotel:'Hotel',guest_house:'Pension / B&B',chalet:'Chalet',apartment:'Ferienwohnung',motel:'Motel'};
 function popup(pl){ const st=stageOf(pl.km); const off=pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m';
@@ -267,7 +267,7 @@ function strips(){ const [a,b]=range();
   fx.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=P[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
 // ---- cursor ----
 const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[16,16]}),zIndexOffset:900,title:'Punkt auf der Route – antippen für Links'}).addTo(map);
-cursor.bindPopup(()=>{ const i=idxAtKm(curKm), q=P[i], st=stageOf(curKm); return `<div class="ty">Punkt auf der Route · Tag ${st.day}</div><b>km ${curKm.toFixed(1)} · ${q[2]} m</b><br>noch ${fmtKm(st.end_km-curKm)} bis ${esc(st.to)}<div class="links"><a href="${wx(q[0],q[1],'km '+curKm.toFixed(1))}" target="_blank" rel="noopener">Wetter</a><a href="#" class="share" data-km="${curKm.toFixed(1)}">Link kopieren</a></div>`+ext(q[0],q[1],'km '+curKm.toFixed(1)); },popt());
+cursor.bindPopup(()=>{ const i=idxAtKm(curKm), q=P[i], st=stageOf(curKm); return `<div class="ty">Route · Tag ${st.day} · Fotos &amp; Karten für diesen Punkt</div><b>km ${curKm.toFixed(1)} · ${q[2]} m</b><br>noch ${fmtKm(st.end_km-curKm)} bis ${esc(st.to)}<div class="links"><a href="${wx(q[0],q[1],'km '+curKm.toFixed(1))}" target="_blank" rel="noopener">Wetter</a><a href="#" class="share" data-km="${curKm.toFixed(1)}">Link kopieren</a></div>`+ext(q[0],q[1],'km '+curKm.toFixed(1)); },popt());
 map.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('.share'); if(a) a.onclick=ev=>{ ev.preventDefault(); const q=P[idxAtKm(curKm)]; const u=location.origin+location.pathname+`#d${stageOf(curKm).day}/${q[0].toFixed(5)},${q[1].toFixed(5)}/15/p`; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{a.textContent='Kopiert ✓';},()=>{prompt('Link:',u);}); }; });
 cursor.bindTooltip('',{direction:'top',className:'rt',offset:[0,-8]});
 let curKm=0;
