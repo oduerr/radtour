@@ -315,20 +315,23 @@ function selectVariant(v){ varSel=v; day=v.day; [...chips.children].forEach((c,i
   updateNav(); setCursor(0,false); }
 window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); if(!h) return; const d=+h[1]; if(d!==day) selectDay(d); });
 // ---- profile window: the part of range() inside the visible map (between header and sheet) ----
-let win={a:0,b:0,part:false,out:false};
+let win={a:0,b:0,part:false,out:false,vis:[]};
 function visLatLon(){ const sz=map.getSize(), hdr=document.querySelector('.hdr .bar').getBoundingClientRect(), sh=sheet.getBoundingClientRect(), desk=innerWidth>=900;
   const x1=desk?Math.min(sz.x,sh.left):sz.x, y1=desk?sz.y:Math.min(sz.y,sh.top); if(x1<=0||y1<=hdr.bottom) return null;
   const nw=map.containerPointToLatLng([0,hdr.bottom]), se=map.containerPointToLatLng([x1,y1]); return [se.lat,nw.lat,nw.lng,se.lng]; }
-function syncWin(){ const [ra,rb]=range(); const o=win; let w={a:ra,b:rb,part:false,out:false};
-  if(OPT.follow&&map._loaded){ const V=visLatLon(); if(V){ const A=AP(), i0=idxAtKm(ra), i1=idxAtKm(rb); let lo=Infinity,hi=-Infinity;
-    // segments, not just points: at high zoom a straight stretch can cross the view with both ends outside
-    const B=L.bounds([V[2],V[0]],[V[3],V[1]]); let q=null,qin=false;
-    for(let i=i0;i<=i1;i++){ const p=A[i], r=L.point(p[1],p[0]), rin=B.contains(r);
-      if(rin||(q&&(qin||L.LineUtil.clipSegment(q,r,B,false,true)))){ const k0=q?A[i-1][3]:p[3]; if(k0<lo) lo=k0; if(p[3]>hi) hi=p[3]; }
-      q=r; qin=rin; }
-    if(lo===Infinity) w.out=true; else { if(hi-lo<2){ const m=(lo+hi)/2; lo=m-1; hi=m+1; if(lo<ra){hi+=ra-lo;lo=ra;} if(hi>rb){lo-=hi-rb;hi=rb;} lo=Math.max(ra,lo); }
+// km span of A[i0..i1] whose segments touch the lat/lon box B, or null. Segments, not just points: at high zoom a straight stretch can cross the view with both ends outside
+function visSpan(A,i0,i1,B){ let lo=Infinity,hi=-Infinity,q=null,qin=false;
+  for(let i=i0;i<=i1;i++){ const p=A[i], r=L.point(p[1],p[0]), rin=B.contains(r);
+    if(rin||(q&&(qin||L.LineUtil.clipSegment(q,r,B,false,true)))){ const k0=q?A[i-1][3]:p[3]; if(k0<lo) lo=k0; if(p[3]>hi) hi=p[3]; }
+    q=r; qin=rin; }
+  return lo===Infinity?null:[lo,hi]; }
+function syncWin(){ const [ra,rb]=range(); const o=win; let w={a:ra,b:rb,part:false,out:false,vis:[]};
+  if(OPT.follow&&map._loaded){ const V=visLatLon(); if(V){ const A=AP(), B=L.bounds([V[2],V[0]],[V[3],V[1]]); const sp=visSpan(A,idxAtKm(ra),idxAtKm(rb),B);
+    if(!sp){ w.out=true; // which other days are on screen? (main route, all stages)
+      for(const st of S){ if(st.day===day&&!varSel) continue; let lo=0,hi=P.length-1; while(lo<hi){const m=(lo+hi)>>1; if(P[m][3]<st.start_km) lo=m+1; else hi=m;} let lo2=0,hi2=P.length-1; while(lo2<hi2){const m=(lo2+hi2)>>1; if(P[m][3]<st.end_km) lo2=m+1; else hi2=m;} if(visSpan(P,lo,lo2,B)) w.vis.push(st.day); } }
+    else { let [lo,hi]=sp; if(hi-lo<2){ const m=(lo+hi)/2; lo=m-1; hi=m+1; if(lo<ra){hi+=ra-lo;lo=ra;} if(hi>rb){lo-=hi-rb;hi=rb;} lo=Math.max(ra,lo); }
       const tol=(rb-ra)*0.01; if(lo-ra<tol) lo=ra; if(rb-hi<tol) hi=rb; w.a=lo; w.b=hi; w.part=lo>ra||hi<rb; } } }
-  win=w; return w.a!==o.a||w.b!==o.b||w.part!==o.part||w.out!==o.out; }
+  win=w; return w.a!==o.a||w.b!==o.b||w.part!==o.part||w.out!==o.out||String(w.vis)!==String(o.vis); }
 let winT=null; map.on('moveend',()=>{ clearTimeout(winT); winT=setTimeout(()=>{ if(syncWin()) drawProfile(); },150); });
 // ---- profile ----
 const cv=$('prof'), ctx=cv.getContext('2d');
@@ -363,11 +366,12 @@ function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.
   if(curKm>=ra&&curKm<=rb){ const ci=$('ci'); if(ci){ const st2=endOf(curKm); ci.textContent=`▸ km ${curKm.toFixed(1)} · ${P[idxAtKm(curKm)][2]} m · noch ${fmtKm(st2.end_km-curKm)} bis ${st2.to}`; } if(!gps) updateNav(); }
   if(win.part){ ctx.strokeStyle=C_ACC; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(L0+1.5,T0-4); ctx.lineTo(L0+1.5,H-B0+3); ctx.moveTo(W-R0-1.5,T0-4); ctx.lineTo(W-R0-1.5,H-B0+3); ctx.stroke(); }
   const wl=$('win'); if(wl) wl.textContent=win.part?`Ausschnitt ${fmtKm(b-a)}`:'';
-  if(win.out){ ctx.fillStyle=css('--bg'); ctx.globalAlpha=.6; ctx.fillRect(L0,0,W-L0-R0,H-B0); ctx.globalAlpha=1; ctx.fillStyle=C_INK; ctx.font='600 13px "Barlow Condensed",system-ui'; ctx.textAlign='center'; ctx.fillText('Route ausserhalb des Ausschnitts',L0+(W-L0-R0)/2,T0+(H-T0-B0)/2+4); }
+  if(win.out){ ctx.fillStyle=css('--bg'); ctx.globalAlpha=.6; ctx.fillRect(L0,0,W-L0-R0,H-B0); ctx.globalAlpha=1; ctx.fillStyle=C_INK; ctx.font='600 13px "Barlow Condensed",system-ui'; ctx.textAlign='center'; const who=varSel?`Variante ${varSel.day}b`:day?`Tag ${day}`:'Route'; const cx=L0+(W-L0-R0)/2, cy=T0+(H-T0-B0)/2; ctx.fillText(`${who} ausserhalb des Ausschnitts`,cx,cy+(win.vis.length?-4:4));
+    if(win.vis.length){ ctx.fillStyle=C_ACC; ctx.fillText(`sichtbar: Tag ${win.vis.join(', ')} – antippen`,cx,cy+14); } }
   cv._X={a,b,L0,R0,W}; }
 function kmFromEvent(ev){ const r=cv.getBoundingClientRect(), x=ev.clientX-r.left; const {a,b,L0,R0,W}=cv._X; return Math.min(b,Math.max(a,a+(x-L0)/(W-L0-R0)*(b-a))); }
 let dragging=false;
-cv.addEventListener('pointerdown',e=>{dragging=true;cv.setPointerCapture(e.pointerId);setCursor(kmFromEvent(e),true);});
+cv.addEventListener('pointerdown',e=>{ if(win.out&&win.vis.length){ selectDay(win.vis[0],true); return; } dragging=true;cv.setPointerCapture(e.pointerId);setCursor(kmFromEvent(e),true);});
 cv.addEventListener('pointermove',e=>{ if(dragging||e.pointerType==='mouse') setCursor(kmFromEvent(e),true); });
 cv.addEventListener('pointerup',()=>{dragging=false;}); cv.addEventListener('pointercancel',()=>{dragging=false;});
 cv.addEventListener('dblclick',()=>{ const p=AP()[idxAtKm(curKm)]; map.setView([p[0],p[1]],Math.max(map.getZoom(),14)); });
