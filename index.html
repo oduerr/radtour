@@ -49,6 +49,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .stat b{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:19px;font-weight:600}
 .stat span{color:var(--muted);font-size:13px}
 .stat .ci{color:var(--ink)}
+.stat .win{color:var(--accent);font-weight:600}
 .strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 6px;align-items:center;white-space:nowrap}
 .strip::-webkit-scrollbar{display:none}
 .strip a,.strip button{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--chip);border:0;border-radius:999px;padding:0 10px;height:30px;line-height:30px;font:600 13px "Barlow Condensed",system-ui,sans-serif;cursor:pointer}
@@ -266,7 +267,8 @@ for(const st of S){ const m=L.marker([st.lat,st.lon],{icon:L.divIcon({className:
   .bindPopup(()=>{ const lo=PL.filter(pl=>pl.e&&Math.abs(pl.km-st.end_km)<=4).sort((x,y)=>(x.k==='camp'?0:x.k==='bed'?2:1)-(y.k==='camp'?0:y.k==='bed'?2:1)||x.off-y.off);
     const li=lo.map(pl=>`<div>${pl.k==='camp'?'⛺':pl.k==='bed'?'🛏':'🏠'} ${esc(pl.n||TY[pl.t])} <span style="color:var(--muted)">${pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m'}</span>${pl.p?` · <a href="tel:${esc(pl.p.replace(/\s/g,''))}">${esc(pl.p)}</a>`:''}</div>`).join('');
     return `<div class="ty">Etappenziel Tag ${st.day} · km ${st.end_km}</div><b>${esc(st.to)}</b> <span style="color:var(--muted)">${st.ele} m</span><br>${esc(st.from)} → ${esc(st.to)}: ${st.km} km · ↑ ${st.up} m · ↓ ${st.down} m${li?`<div style="margin-top:6px;font-size:13px">${li}</div>`:'<div style="margin-top:6px;font-size:13px;color:var(--muted)">Keine Unterkunft im Umkreis erfasst</div>'}<div class="links"><a href="#" class="today" data-day="${st.day}">Tag ${st.day} zeigen</a><a href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">Wetter</a></div>`+ext(st.lat,st.lon,st.to); },popt()).addTo(map); }
-map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); const km=+a.dataset.km; const [ra,rb]=range(); if(km<ra||km>rb) selectDay(stageOf(km).day,true); setCursor(km,true); sheet.classList.remove('min'); drawProfile();};
+map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); const km=+a.dataset.km; const [ra,rb]=range(); if(km<ra||km>rb) selectDay(stageOf(km).day,true); const wasMin=sheet.classList.contains('min'); sheet.classList.remove('min');
+    const go=()=>{ syncWin(); if(OPT.follow&&!(km>=win.a&&km<=win.b)){ const p=AP()[idxAtKm(km)]; map.panTo([p[0],p[1]]); } setCursor(km,true); }; wasMin?setTimeout(go,280):go(); };
   const b=el.querySelector('.today'); if(b) b.onclick=ev=>{ev.preventDefault(); selectDay(+b.dataset.day); map.closePopup();};
   const c=el.querySelector('.varsel'); if(c) c.onclick=ev=>{ev.preventDefault(); const v=VR.find(x=>x.day===+c.dataset.day); if(v) selectVariant(v); map.closePopup();}; });
 // ---- strips ----
@@ -326,7 +328,7 @@ function syncWin(){ const [ra,rb]=range(); const o=win; let w={a:ra,b:rb,part:fa
 let winT=null; map.on('moveend',()=>{ clearTimeout(winT); winT=setTimeout(()=>{ if(syncWin()) drawProfile(); },150); });
 // ---- profile ----
 const cv=$('prof'), ctx=cv.getContext('2d');
-function syncSheet(){ const v=Math.max(0,Math.round(innerHeight-sheet.getBoundingClientRect().top))+'px'; const r=document.documentElement.style; if(r.getPropertyValue('--sheet-h')!==v) r.setProperty('--sheet-h',v); }
+function syncSheet(){ const h=sheet.classList.contains('min')?66+Math.max(0,parseFloat(getComputedStyle(sheet).paddingBottom)-8):sheet.offsetHeight; const v=Math.round(h)+'px'; const r=document.documentElement.style; if(r.getPropertyValue('--sheet-h')!==v) r.setProperty('--sheet-h',v); }
 function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
   if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;} ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   const P=AP(); const [ra,rb]=range(); if(win.a===win.b||win.a<ra||win.b>rb){ win={a:ra,b:rb,part:false,out:false}; } const {a,b}=win, L0=34,R0=8,T0=14,B0=18, i0=idxAtKm(a), i1=idxAtKm(b), overview=!day&&!varSel&&(b-a)>=150;
@@ -340,7 +342,7 @@ function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.
   ctx.beginPath(); ctx.moveTo(X(P[j0][3]),Y(emin)); for(let i=j0;i<=j1;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(P[j1][3]),Y(emin)); ctx.closePath(); ctx.fillStyle=C_AREA; ctx.fill();
   ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=j0;i<=j1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=varSel?'#7B3F9E':(MAPCOL[c]||MAPCOL.p); if(i>j0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke(); ctx.restore();
   ctx.fillStyle=C_MUTED; ctx.textAlign='center'; ctx.font='11px system-ui'; const kstep=(b-a)>300?100:(b-a)>120?20:(b-a)>40?10:(b-a)>15?5:(b-a)>6?2:1;
-  const wlbl=win.part?`Ausschnitt ${fmtKm(b-a)}`:''; ctx.font='600 11px "Barlow Condensed",system-ui'; const wlw=wlbl?ctx.measureText(wlbl).width:0; ctx.font='11px system-ui';
+  const wlbl=win.part&&innerWidth<900?`Ausschnitt ${fmtKm(b-a)}`:''; ctx.font='600 11px "Barlow Condensed",system-ui'; const wlw=wlbl?ctx.measureText(wlbl).width:0; ctx.font='11px system-ui';
   for(let k=Math.ceil(a/kstep)*kstep;k<=b;k+=kstep){ if(wlw&&X(k)+14>W-R0-wlw-8) break; ctx.fillText(k+(k===Math.ceil(a/kstep)*kstep?' km':''),X(k),H-4); }
   if(wlbl){ ctx.fillStyle=C_ACC; ctx.textAlign='right'; ctx.font='600 11px "Barlow Condensed",system-ui'; ctx.fillText(wlbl,W-R0-4,H-4); }
   ctx.font='600 11px "Barlow Condensed",system-ui';
@@ -366,7 +368,7 @@ cv.addEventListener('pointermove',e=>{ if(dragging||e.pointerType==='mouse') set
 cv.addEventListener('pointerup',()=>{dragging=false;}); cv.addEventListener('pointercancel',()=>{dragging=false;});
 cv.addEventListener('dblclick',()=>{ const p=P[idxAtKm(curKm)]; map.setView([p[0],p[1]],Math.max(map.getZoom(),14)); });
 let userMoved=false; map.on('dragstart zoomstart',()=>{ if(!prog) userMoved=true; });
-$('handle').onclick=()=>{ sheet.classList.toggle('min'); setTimeout(()=>{ if(day&&!userMoved) selectDay(day); else { syncWin(); drawProfile(); } },280); };
+$('handle').onclick=()=>{ sheet.classList.toggle('min'); syncSheet(); setTimeout(()=>{ if(!userMoved&&varSel) selectVariant(varSel); else if(!userMoved&&day) selectDay(day); else { syncWin(); drawProfile(); } },280); };
 // ---- GPS ----
 let gps=null, gpsM=null, gpsC=null, watchId=null, follow=false, ctl=null;
 const Locate=L.Control.extend({onAdd(){ const d=L.DomUtil.create('div','leaflet-bar leaflet-control leaflet-control-locate'); const a=L.DomUtil.create('a','',d); a.href='#'; a.title='Standort (l)'; a.innerHTML='◎';
