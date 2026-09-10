@@ -64,7 +64,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 @media (max-width:480px){.legend span.x{display:none} .stat .from{display:none}}
 @media (max-width:400px){.hdr .sub{display:none}}
 @media (pointer:coarse) and (max-width:899px){.leaflet-control-zoom{display:none}}
-@media (max-width:899px){.leaflet-bottom.leaflet-left{display:none}}
+@media (max-width:899px){.leaflet-bottom.leaflet-left{bottom:var(--sheet-h,0px);transition:bottom .25s} .leaflet-control-attribution{display:none}}
+.leaflet-control-scale-line{background:var(--panel);color:var(--ink);border:2px solid var(--ink);border-top:0;font:600 11px system-ui,sans-serif;line-height:1.1;padding:2px 5px 1px;text-shadow:none;font-variant-numeric:tabular-nums;box-shadow:0 1px 3px rgba(0,0,0,.25);border-radius:0 0 3px 3px}
+body.hc .leaflet-control-scale-line{background:#fff;color:#000;border-color:#000;border-width:3px;font-size:14px;padding:3px 6px 2px}
 @media (min-width:900px){#prof{height:180px} .sheet{left:auto;right:0;width:min(560px,42vw);border-left:1px solid var(--rule);border-top-left-radius:12px} .hdr .bar{max-width:760px} :root{--hdr-h:96px}}
 .leaflet-control-gear a{font-size:20px;text-align:center;display:block;cursor:pointer;text-decoration:none;color:#333}
 .leaflet-control-gear.on a{background:#1D6E8C;color:#fff}
@@ -193,6 +195,7 @@ const sheet=$('sheet');
 const map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:false});
 L.control.zoom({position:'topright'}).addTo(map);
 L.control.attribution({position:'bottomleft',prefix:false}).addTo(map);
+L.control.scale({position:'bottomleft',imperial:false,maxWidth:120}).addTo(map);
 const topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap, SRTM · © OpenTopoMap (CC-BY-SA)'});
 const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
 const swiss=L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',{maxZoom:18,attribution:'© swisstopo'});
@@ -307,7 +310,8 @@ function selectVariant(v){ varSel=v; day=v.day; [...chips.children].forEach((c,i
 window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); if(!h) return; const d=+h[1]; if(d!==day) selectDay(d); });
 // ---- profile ----
 const cv=$('prof'), ctx=cv.getContext('2d');
-function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
+function syncSheet(){ const v=Math.max(0,Math.round(innerHeight-sheet.getBoundingClientRect().top))+'px'; const r=document.documentElement.style; if(r.getPropertyValue('--sheet-h')!==v) r.setProperty('--sheet-h',v); }
+function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
   if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;} ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
   const P=AP(); const [a,b]=range(), L0=34,R0=8,T0=14,B0=18, i0=idxAtKm(a), i1=idxAtKm(b), overview=!day&&!varSel;
   let emin=1e9,emax=-1e9; for(let i=i0;i<=i1;i++){emin=Math.min(emin,P[i][2]);emax=Math.max(emax,P[i][2]);}
