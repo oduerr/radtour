@@ -147,7 +147,7 @@ body.big .gpsdot{transform:scale(1.5)}
   <div class="strip" id="wx"></div>
   <div class="strip" id="fx"></div>
   <canvas id="prof"></canvas>
-  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
+  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span><i style="background:#7B3F9E;height:3px;border-top:2px dashed #7B3F9E;background:none"></i>Variante</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
@@ -227,6 +227,12 @@ map.on('zoomend',syncBeds); map.on('overlayadd',e=>{ if(e.layer===bedLayer){ bed
 let hutWant=true, auto=false; map.on('overlayadd',e=>{ if(e.layer===hutLayer&&!auto) hutWant=true; }); map.on('overlayremove',e=>{ if(e.layer===hutLayer&&!auto) hutWant=false; });
 function declutter(){ auto=true; const sh=hutWant&&(OPT.all||map.getZoom()>=10); if(sh&&!map.hasLayer(hutLayer)) hutLayer.addTo(map); if(!sh&&map.hasLayer(hutLayer)) map.removeLayer(hutLayer); auto=false; }
 map.on('zoomend',declutter);
+// ---- variants (alternative routes, dashed) ----
+const VR=RT.variants||[]; const varLayer=L.layerGroup().addTo(map); const varLines=[];
+for(const v of VR){ const ll=v.pts.map(q=>[q[0],q[1]]);
+  L.polyline(ll,{color:'#fff',weight:7,opacity:.7,interactive:false}).addTo(varLayer);
+  const l=L.polyline(ll,{color:'#7B3F9E',weight:4,opacity:.95,dashArray:'10 8'}).bindPopup(()=>`<div class="ty">Variante · Tag ${v.day}</div><b>${esc(v.n)}</b><br>${v.km} km · ↑ ${v.up} m<br>${esc(v.txt)}<div class="links"><a href="files/${v.file}" download>GPX laden</a></div>`,popt()).addTo(varLayer); varLines.push({v,l}); }
+function syncVariants(){ for(const {v,l} of varLines){ const show=!day||day===v.day||day===v.day-1; if(show&&!varLayer.hasLayer(l)) l.addTo(varLayer); if(!show&&varLayer.hasLayer(l)) varLayer.removeLayer(l); } }
 // ---- features + weather ----
 const FE=RT.features||[], WX=RT.weather||[]; const KIND={pass:'Pass',push:'Schiebepassage',note:'Hinweis'};
 function fpopup(f){ const st=stageOf(f.km); let h=`<div class="ty">${KIND[f.k]} · km ${f.km.toFixed(1)} · Tag ${st.day}</div><b>${f.n}</b> <span style="color:var(--muted)">${f.ele} m</span><br>${f.txt}<div class="links">`;
@@ -248,7 +254,7 @@ for(const w of WX){ if(nearPassOrEnd(w)) continue; const m=L.marker([w.lat,w.lon
 function wxZoom(){ const z=map.getZoom(); wxAuto=true; try{ if(!wxOn||z<8){ if(map.hasLayer(wxLayer)) map.removeLayer(wxLayer); return; } if(!map.hasLayer(wxLayer)) wxLayer.addTo(map);
   if(!wxLayer.hasLayer(wxHi)) wxLayer.addLayer(wxHi); if(z>=11&&!wxLayer.hasLayer(wxAll)) wxLayer.addLayer(wxAll); if(z<11&&wxLayer.hasLayer(wxAll)) wxLayer.removeLayer(wxAll); } finally { wxAuto=false; } }
 map.on('zoomend',wxZoom); map.on('overlayadd',e=>{ if(e.layer===wxLayer&&!wxAuto){wxOn=true; wxZoom();} }); map.on('overlayremove',e=>{ if(e.layer===wxLayer&&!wxAuto) wxOn=false; });
-L.control.layers({'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'OSM':osm},{'Zeltplätze':campLayer,'Hütten & Biwaks (ab Zoom 10)':hutLayer,'Betten (ab Zoom 12)':bedLayer,'Pässe & Hinweise':featLayer,'Wetterpunkte':wxLayer},{position:'topright',collapsed:true}).addTo(map);
+L.control.layers({'OpenTopoMap':topo,'swisstopo (nur CH)':swiss,'Satellit':sat,'OSM':osm},{'Zeltplätze':campLayer,'Hütten & Biwaks (ab Zoom 10)':hutLayer,'Betten (ab Zoom 12)':bedLayer,'Pässe & Hinweise':featLayer,'Asphalt-Varianten (gestrichelt)':varLayer,'Wetterpunkte':wxLayer},{position:'topright',collapsed:true}).addTo(map);
 // stage-end labels
 for(const st of S){ const m=L.marker([st.lat,st.lon],{icon:L.divIcon({className:'',html:`<div class="stagelbl">${st.day}·${esc(st.to)}</div>`,iconAnchor:[-7,24]}),zIndexOffset:600}); stageMarkers.push({m,st}); m
   .bindPopup(()=>{ const lo=PL.filter(pl=>pl.e&&Math.abs(pl.km-st.end_km)<=4).sort((x,y)=>(x.k==='camp'?0:x.k==='bed'?2:1)-(y.k==='camp'?0:y.k==='bed'?2:1)||x.off-y.off);
@@ -263,8 +269,10 @@ function strips(){ const [a,b]=range();
   const nw=$('navwx'); if(nw){ nw.href=wx(st.lat,st.lon,st.to); nw.textContent='☁ '+st.to; }
   const fl=FE.filter(f=>f.km>=a-0.1&&f.km<=b+(day?2.5:0.1)); const fx=$('fx'); fx.style.display=(fl.length||day)?'':'none';
   let hint=''; if(day){ const cs=PL.filter(pl=>pl.k==='camp'&&pl.km>=a-2&&pl.km<=b+2); if(!cs.length){ const nx=PL.find(pl=>pl.k==='camp'&&pl.km>b); hint=`<button data-km="${nx?nx.km:b}" class="hi" style="background:#2E8B57;color:#fff">⛺ kein Zeltplatz auf dieser Etappe${nx?' · nächster bei km '+nx.km.toFixed(0)+' ('+esc(nx.n||'Camping')+')':''}</button>`; } }
-  fx.innerHTML='<span class="lbl">Punkte</span>'+hint+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${esc(f.n)}</button>`).join('');
-  fx.querySelectorAll('button').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=P[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
+  const vh=VR.filter(v=>day&&v.day===day).map(v=>`<button data-var="${v.day}" style="background:#7B3F9E;color:#fff">⇄ ${esc(v.n)}</button>`).join('');
+  fx.innerHTML='<span class="lbl">Punkte</span>'+hint+vh+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${esc(f.n)}</button>`).join('');
+  fx.querySelectorAll('button[data-var]').forEach(bt=>bt.onclick=()=>{ const e=varLines.find(x=>x.v.day===+bt.dataset.var); if(e){ map.fitBounds(e.l.getBounds(),fitPad()); e.l.openPopup(); } });
+  fx.querySelectorAll('button[data-km]').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=P[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
 // ---- cursor ----
 const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[16,16]}),zIndexOffset:900,title:'Punkt auf der Route – antippen für Links'}).addTo(map);
 cursor.bindPopup(()=>{ const i=idxAtKm(curKm), q=P[i], st=stageOf(curKm); return `<div class="ty">Route · Tag ${st.day} · Fotos &amp; Karten für diesen Punkt</div><b>km ${curKm.toFixed(1)} · ${q[2]} m</b><br>noch ${fmtKm(st.end_km-curKm)} bis ${esc(st.to)}<div class="links"><a href="${wx(q[0],q[1],'km '+curKm.toFixed(1))}" target="_blank" rel="noopener">Wetter</a><a href="#" class="share" data-km="${curKm.toFixed(1)}">Link kopieren</a></div>`+ext(q[0],q[1],'km '+curKm.toFixed(1)); },popt());
@@ -286,7 +294,7 @@ function selectDay(d,noFit){ day=Math.max(0,Math.min(ND,d|0)); if(!noFit) userMo
   const stat=$('stat');
   if(!day) stat.innerHTML=`<b>Gesamt</b><span>${Math.floor(TOTAL)} km</span><span>↑ ${UP.toLocaleString('de')} m</span><span>↓ ${DN.toLocaleString('de')} m</span><span>${ND} Tage</span><span class="ci" id="ci"></span>`;
   else { const st=S[day-1]; stat.innerHTML=`<b>Tag ${st.day}</b><span><span class="from">${esc(st.from)} → </span><strong>${esc(st.to)}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="ci" id="ci"></span>`; }
-  history.replaceState(null,'',day?('#d'+day):location.pathname); if(curKm<a||curKm>b) curKm=a; buildPlaces(); strips(); drawProfile(); updateNav();
+  history.replaceState(null,'',day?('#d'+day):location.pathname); if(curKm<a||curKm>b) curKm=a; buildPlaces(); strips(); syncVariants(); drawProfile(); updateNav();
   if(!noFit){ const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]); progMove(()=>map.fitBounds(L.latLngBounds(pts),fitPad())); } }
 window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); if(!h) return; const d=+h[1]; if(d!==day) selectDay(d); });
 // ---- profile ----
