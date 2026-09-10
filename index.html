@@ -299,6 +299,9 @@ function range(){ if(varSel) return [0,varSel.km]; if(!day) return [0,TOTAL]; co
 function fitPad(){ const sh=sheet.getBoundingClientRect(), W=innerWidth, H=innerHeight, hdr=document.querySelector('.hdr .bar').getBoundingClientRect();
   const bottom=Math.max(0,H-sh.top); return W>=900?{paddingTopLeft:[24,hdr.bottom+16],paddingBottomRight:[sh.width+24,16]}:{paddingTopLeft:[16,hdr.bottom+12],paddingBottomRight:[16,bottom+12]}; }
 let prog=false; function progMove(fn){ prog=true; try{ fn(); } finally { setTimeout(()=>{prog=false;},50); } }
+// Leaflet ignores setView while a zoom animation runs (rapid chip taps / arrow keys): queue the latest fit until zoomend
+let pendingFit=null; map.on('zoomend',()=>{ if(pendingFit&&!map._animatingZoom){ const g=pendingFit; pendingFit=null; g(); } });
+function fitRoute(b){ const go=()=>progMove(()=>map.fitBounds(b,fitPad())); if(map._animatingZoom) pendingFit=go; else { pendingFit=null; go(); } }
 function selectDay(d,noFit){ varSel=null; day=Math.max(0,Math.min(ND,d|0)); if(!noFit) userMoved=false; [...chips.children].forEach((c,i)=>{c.classList.toggle('on',i===day); if(i===day) c.scrollIntoView({inline:'center',block:'nearest'});});
   const [a,b]=range();
   const stat=$('stat');
@@ -306,12 +309,12 @@ function selectDay(d,noFit){ varSel=null; day=Math.max(0,Math.min(ND,d|0)); if(!
   else { const st=S[day-1]; stat.innerHTML=`<b>Tag ${st.day}</b><span><span class="from">${esc(st.from)} → </span><strong>${esc(st.to)}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="win" id="win"></span><span class="ci" id="ci"></span>`; }
   history.replaceState(null,'',day?('#d'+day):location.pathname); if(curKm<a||curKm>b) curKm=a; buildPlaces(); strips(); syncVariants();
   // fit first: a fitted day shows the whole stage, so the window is the full range until moveend refines it
-  if(!noFit){ const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]); progMove(()=>map.fitBounds(L.latLngBounds(pts),fitPad())); win={a,b,part:false,out:false}; } else syncWin();
+  if(!noFit){ const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]); fitRoute(L.latLngBounds(pts)); win={a,b,part:false,out:false,vis:[]}; } else syncWin();
   drawProfile(); updateNav(); }
 function selectVariant(v){ varSel=v; day=v.day; [...chips.children].forEach((c,i)=>c.classList.toggle('on',i===day)); userMoved=false;
   const stat=$('stat'); stat.innerHTML=`<b>Tag ${v.day}b</b><span><strong>${esc(v.n.replace(/^Tag \d+b · /,''))}</strong></span><span>${v.km} km</span><span>↑ ${v.up} m</span><span class="win" id="win"></span><span class="ci" id="ci"></span>`;
   history.replaceState(null,'',`#d${v.day}v`); curKm=0; buildPlaces(); strips(); syncVariants();
-  const e=varLines.find(x=>x.v===v); if(e) progMove(()=>map.fitBounds(e.l.getBounds(),fitPad())); win={a:0,b:v.km,part:false,out:false};
+  const e=varLines.find(x=>x.v===v); if(e) fitRoute(e.l.getBounds()); win={a:0,b:v.km,part:false,out:false,vis:[]};
   updateNav(); setCursor(0,false); }
 window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); if(!h) return; const d=+h[1]; if(d!==day) selectDay(d); });
 // ---- profile window: the part of range() inside the visible map (between header and sheet) ----
