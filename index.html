@@ -157,7 +157,8 @@ body.big .gpsdot{transform:scale(1.5)}
 const RT=window.RT, S=RT.stages, ND=S.length, css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const MAPCOL={p:'#2C3E63',g:'#E08A00',t:'#E0242A'};          // theme-independent: the map tiles don't flip
 const $=id=>document.getElementById(id);
-let day=0;
+let day=0, varSel=null;
+const AP=()=>varSel?varSel.pts:P;
 let OPT={hc:false,big:false,all:false}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rt.opt')||'{}')); }catch(e){}
 function applyOpt(){ document.body.classList.toggle('hc',OPT.hc); document.body.classList.toggle('big',OPT.big); try{ localStorage.setItem('rt.opt',JSON.stringify(OPT)); }catch(e){} }
 applyOpt();
@@ -165,12 +166,13 @@ applyOpt();
 const P=[]; for(const s of RT.track){ for(const q of s.pts){ if(!P.length||q[3]>P[P.length-1][3]) P.push([q[0],q[1],q[2],q[3],s.c]); } }
 const TOTAL=P[P.length-1][3]; const UP=S.reduce((x,s)=>x+s.up,0), DN=S.reduce((x,s)=>x+s.down,0);
 $('sub').textContent=`${Math.floor(TOTAL)} km · ↑ ${UP.toLocaleString('de')} m · ${ND} Tage`;
-function idxAtKm(km){ let lo=0,hi=P.length-1; while(lo<hi){const m=(lo+hi)>>1; if(P[m][3]<km) lo=m+1; else hi=m;} return lo; }
+function idxAtKm(km){ const A=AP(); let lo=0,hi=A.length-1; while(lo<hi){const m=(lo+hi)>>1; if(A[m][3]<km) lo=m+1; else hi=m;} return lo; }
 function fmtKm(x){return x.toFixed(1).replace('.',',')+' km';}
 function stageOf(km){ if(day){ const st=S[day-1]; if(km>=st.start_km-1e-6&&km<=st.end_km+1e-6) return st; } return S.find(s=>km<=s.end_km+1e-6)||S[ND-1]; }
-function nearest(lat,lon){ const cl=Math.cos(lat*Math.PI/180); let best=1e18,bi=0;
-  for(let i=0;i<P.length;i++){const dy=(P[i][0]-lat),dx=(P[i][1]-lon)*cl,d=dx*dx+dy*dy; if(d<best){best=d;bi=i;}}
-  return {i:bi,km:P[bi][3],dist:Math.sqrt(best)*111.32}; }
+function nearest(lat,lon){ const A=AP(); const cl=Math.cos(lat*Math.PI/180); let best=1e18,bi=0;
+  for(let i=0;i<A.length;i++){const dy=(A[i][0]-lat),dx=(A[i][1]-lon)*cl,d=dx*dx+dy*dy; if(d<best){best=d;bi=i;}}
+  return {i:bi,km:A[bi][3],dist:Math.sqrt(best)*111.32}; }
+function endOf(km){ if(varSel) return {to:S[varSel.day-1].to,end_km:varSel.km,day:varSel.day}; const st=stageOf(km); return {to:st.to,end_km:st.end_km,day:st.day}; }
 const esc=t=>String(t).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function popt(extra){ const hdr=document.querySelector('.hdr .bar').getBoundingClientRect(), sh=sheet.getBoundingClientRect(); return Object.assign({maxWidth:300,autoPanPaddingTopLeft:[10,hdr.bottom+10],autoPanPaddingBottomRight:[10,Math.max(0,innerHeight-sh.top)+10]},extra||{}); }
 function ext(lat,lon,name,o){ o=o||{}; const la=lat.toFixed(5), lo=lon.toFixed(5), q=`${la},${lo}`; const L_=[];
@@ -231,7 +233,7 @@ map.on('zoomend',declutter);
 const VR=RT.variants||[]; const varLayer=L.layerGroup().addTo(map); const varLines=[];
 for(const v of VR){ const ll=v.pts.map(q=>[q[0],q[1]]);
   L.polyline(ll,{color:'#fff',weight:7,opacity:.7,interactive:false}).addTo(varLayer);
-  const l=L.polyline(ll,{color:'#7B3F9E',weight:4,opacity:.95,dashArray:'10 8'}).bindPopup(()=>`<div class="ty">Variante · Tag ${v.day}</div><b>${esc(v.n)}</b><br>${v.km} km · ↑ ${v.up} m<br>${esc(v.txt)}<div class="links"><a href="files/${v.file}" download>GPX laden</a></div>`,popt()).addTo(varLayer); varLines.push({v,l}); }
+  const l=L.polyline(ll,{color:'#7B3F9E',weight:4,opacity:.95,dashArray:'10 8'}).bindPopup(()=>`<div class="ty">Variante · Tag ${v.day}</div><b>${esc(v.n)}</b><br>${v.km} km · ↑ ${v.up} m<br>${esc(v.txt)}<div class="links"><a href="#" class="varsel" data-day="${v.day}">Profil zeigen</a><a href="files/${v.file}" download>GPX laden</a></div>`,popt()).addTo(varLayer); varLines.push({v,l}); }
 function syncVariants(){ for(const {v,l} of varLines){ const show=!day||day===v.day||day===v.day-1; if(show&&!varLayer.hasLayer(l)) l.addTo(varLayer); if(!show&&varLayer.hasLayer(l)) varLayer.removeLayer(l); } }
 // ---- features + weather ----
 const FE=RT.features||[], WX=RT.weather||[]; const KIND={pass:'Pass',push:'Schiebepassage',note:'Hinweis'};
@@ -261,17 +263,19 @@ for(const st of S){ const m=L.marker([st.lat,st.lon],{icon:L.divIcon({className:
     const li=lo.map(pl=>`<div>${pl.k==='camp'?'⛺':pl.k==='bed'?'🛏':'🏠'} ${esc(pl.n||TY[pl.t])} <span style="color:var(--muted)">${pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m'}</span>${pl.p?` · <a href="tel:${esc(pl.p.replace(/\s/g,''))}">${esc(pl.p)}</a>`:''}</div>`).join('');
     return `<div class="ty">Etappenziel Tag ${st.day} · km ${st.end_km}</div><b>${esc(st.to)}</b> <span style="color:var(--muted)">${st.ele} m</span><br>${esc(st.from)} → ${esc(st.to)}: ${st.km} km · ↑ ${st.up} m · ↓ ${st.down} m${li?`<div style="margin-top:6px;font-size:13px">${li}</div>`:'<div style="margin-top:6px;font-size:13px;color:var(--muted)">Keine Unterkunft im Umkreis erfasst</div>'}<div class="links"><a href="#" class="today" data-day="${st.day}">Tag ${st.day} zeigen</a><a href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">Wetter</a></div>`+ext(st.lat,st.lon,st.to); },popt()).addTo(map); }
 map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); const km=+a.dataset.km; const [ra,rb]=range(); if(km<ra||km>rb) selectDay(stageOf(km).day,true); setCursor(km,true); sheet.classList.remove('min'); drawProfile();};
-  const b=el.querySelector('.today'); if(b) b.onclick=ev=>{ev.preventDefault(); selectDay(+b.dataset.day); map.closePopup();}; });
+  const b=el.querySelector('.today'); if(b) b.onclick=ev=>{ev.preventDefault(); selectDay(+b.dataset.day); map.closePopup();};
+  const c=el.querySelector('.varsel'); if(c) c.onclick=ev=>{ev.preventDefault(); const v=VR.find(x=>x.day===+c.dataset.day); if(v) selectVariant(v); map.closePopup();}; });
 // ---- strips ----
-function strips(){ const [a,b]=range();
+function strips(){ let [a,b]=range(); if(varSel){ const st=S[varSel.day-1]; a=st.start_km; b=st.end_km; }
   const st=day?S[day-1]:S[ND-1]; const wl=WX.filter(w=>day?(w.km>=a-0.1&&w.km<=b+2.5&&Math.abs(w.km-st.end_km)>0.6):(w.h||w.km===0));
   $('wx').innerHTML='<span class="lbl">Wetter</span>'+`<a class="ziel" style="background:#1D6E8C;color:#fff" href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">🏁 ${esc(st.to)}</a>`+wl.map(w=>`<a class="${w.h?'hi':''}" href="${wx(w.lat,w.lon,w.n)}" target="_blank" rel="noopener">${w.h?'▲ ':''}${esc(w.n)}</a>`).join('');
   const nw=$('navwx'); if(nw){ nw.href=wx(st.lat,st.lon,st.to); nw.textContent='☁ '+st.to; }
   const fl=FE.filter(f=>f.km>=a-0.1&&f.km<=b+(day?2.5:0.1)); const fx=$('fx'); fx.style.display=(fl.length||day)?'':'none';
   let hint=''; if(day){ const cs=PL.filter(pl=>pl.k==='camp'&&pl.km>=a-2&&pl.km<=b+2); if(!cs.length){ const nx=PL.find(pl=>pl.k==='camp'&&pl.km>b); hint=`<button data-km="${nx?nx.km:b}" class="hi" style="background:#2E8B57;color:#fff">⛺ kein Zeltplatz auf dieser Etappe${nx?' · nächster bei km '+nx.km.toFixed(0)+' ('+esc(nx.n||'Camping')+')':''}</button>`; } }
-  const vh=VR.filter(v=>day&&v.day===day).map(v=>`<button data-var="${v.day}" style="background:#7B3F9E;color:#fff">⇄ ${esc(v.n)}</button>`).join('');
+  const vh=VR.filter(v=>day&&v.day===day).map(v=>`<button data-var="${v.day}" style="background:${varSel===v?'#4B1F6E':'#7B3F9E'};color:#fff">${varSel===v?'✓ ':'⇄ '}${esc(v.n)}</button>`).join('')+(varSel?`<button data-orig="1">↩ Original Tag ${varSel.day}</button>`:'');
   fx.innerHTML='<span class="lbl">Punkte</span>'+hint+vh+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${esc(f.n)}</button>`).join('');
-  fx.querySelectorAll('button[data-var]').forEach(bt=>bt.onclick=()=>{ const e=varLines.find(x=>x.v.day===+bt.dataset.var); if(e){ map.fitBounds(e.l.getBounds(),fitPad()); e.l.openPopup(); } });
+  fx.querySelectorAll('button[data-var]').forEach(bt=>bt.onclick=()=>{ const v=VR.find(x=>x.day===+bt.dataset.var); if(v) varSel===v?selectDay(v.day):selectVariant(v); });
+  fx.querySelectorAll('button[data-orig]').forEach(bt=>bt.onclick=()=>selectDay(varSel.day));
   fx.querySelectorAll('button[data-km]').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=P[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
 // ---- cursor ----
 const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[16,16]}),zIndexOffset:900,title:'Punkt auf der Route – antippen für Links'}).addTo(map);
@@ -279,29 +283,33 @@ cursor.bindPopup(()=>{ const i=idxAtKm(curKm), q=P[i], st=stageOf(curKm); return
 map.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('.share'); if(a) a.onclick=ev=>{ ev.preventDefault(); const q=P[idxAtKm(curKm)]; const u=location.origin+location.pathname+`#d${stageOf(curKm).day}/${q[0].toFixed(5)},${q[1].toFixed(5)}/15/p`; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{a.textContent='Kopiert ✓';},()=>{prompt('Link:',u);}); }; });
 cursor.bindTooltip('',{direction:'top',className:'rt',offset:[0,-8]});
 let curKm=0;
-function setCursor(km,openTip){ curKm=km; const i=idxAtKm(km), p=P[i]; cursor.setLatLng([p[0],p[1]]); const st=stageOf(km);
-  cursor.setTooltipContent(`km ${km.toFixed(1)} · ${p[2]} m<br>Tag ${st.day}: noch ${fmtKm(st.end_km-km)} bis ${st.to}`); if(openTip) cursor.openTooltip(); drawProfile(); }
+function setCursor(km,openTip){ curKm=km; const i=idxAtKm(km), p=AP()[i]; cursor.setLatLng([p[0],p[1]]); const st=endOf(km);
+  cursor.setTooltipContent(`${varSel?'Variante · ':''}km ${km.toFixed(1)} · ${p[2]} m<br>Tag ${st.day}: noch ${fmtKm(st.end_km-km)} bis ${st.to}`); if(openTip) cursor.openTooltip(); drawProfile(); }
 // ---- day selection ----
 const chips=$('chips');
 function chip(label,d){const b=document.createElement('button');b.className='chip';b.textContent=label;b.onclick=()=>selectDay(d);chips.appendChild(b);return b;}
 chip('Alle',0); for(const st of S) chip(String(st.day),st.day);
-function range(){ if(!day) return [0,TOTAL]; const st=S[day-1]; return [st.start_km,st.end_km]; }
+function range(){ if(varSel) return [0,varSel.km]; if(!day) return [0,TOTAL]; const st=S[day-1]; return [st.start_km,st.end_km]; }
 function fitPad(){ const sh=sheet.getBoundingClientRect(), W=innerWidth, H=innerHeight, hdr=document.querySelector('.hdr .bar').getBoundingClientRect();
   const bottom=Math.max(0,H-sh.top); return W>=900?{paddingTopLeft:[24,hdr.bottom+16],paddingBottomRight:[sh.width+24,16]}:{paddingTopLeft:[16,hdr.bottom+12],paddingBottomRight:[16,bottom+12]}; }
 let prog=false; function progMove(fn){ prog=true; try{ fn(); } finally { setTimeout(()=>{prog=false;},50); } }
-function selectDay(d,noFit){ day=Math.max(0,Math.min(ND,d|0)); if(!noFit) userMoved=false; [...chips.children].forEach((c,i)=>{c.classList.toggle('on',i===day); if(i===day) c.scrollIntoView({inline:'center',block:'nearest'});});
+function selectDay(d,noFit){ varSel=null; day=Math.max(0,Math.min(ND,d|0)); if(!noFit) userMoved=false; [...chips.children].forEach((c,i)=>{c.classList.toggle('on',i===day); if(i===day) c.scrollIntoView({inline:'center',block:'nearest'});});
   const [a,b]=range();
   const stat=$('stat');
   if(!day) stat.innerHTML=`<b>Gesamt</b><span>${Math.floor(TOTAL)} km</span><span>↑ ${UP.toLocaleString('de')} m</span><span>↓ ${DN.toLocaleString('de')} m</span><span>${ND} Tage</span><span class="ci" id="ci"></span>`;
   else { const st=S[day-1]; stat.innerHTML=`<b>Tag ${st.day}</b><span><span class="from">${esc(st.from)} → </span><strong>${esc(st.to)}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="ci" id="ci"></span>`; }
   history.replaceState(null,'',day?('#d'+day):location.pathname); if(curKm<a||curKm>b) curKm=a; buildPlaces(); strips(); syncVariants(); drawProfile(); updateNav();
   if(!noFit){ const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]); progMove(()=>map.fitBounds(L.latLngBounds(pts),fitPad())); } }
+function selectVariant(v){ varSel=v; day=v.day; [...chips.children].forEach((c,i)=>c.classList.toggle('on',i===day)); userMoved=false;
+  const stat=$('stat'); stat.innerHTML=`<b>Tag ${v.day}b</b><span><strong>${esc(v.n.replace(/^Tag \d+b · /,''))}</strong></span><span>${v.km} km</span><span>↑ ${v.up} m</span><span class="ci" id="ci"></span>`;
+  history.replaceState(null,'',`#d${v.day}v`); curKm=0; buildPlaces(); strips(); syncVariants(); drawProfile(); updateNav(); setCursor(0,false);
+  const e=varLines.find(x=>x.v===v); if(e) progMove(()=>map.fitBounds(e.l.getBounds(),fitPad())); }
 window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); if(!h) return; const d=+h[1]; if(d!==day) selectDay(d); });
 // ---- profile ----
 const cv=$('prof'), ctx=cv.getContext('2d');
 function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
   if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;} ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
-  const [a,b]=range(), L0=34,R0=8,T0=14,B0=18, i0=idxAtKm(a), i1=idxAtKm(b), overview=!day;
+  const P=AP(); const [a,b]=range(), L0=34,R0=8,T0=14,B0=18, i0=idxAtKm(a), i1=idxAtKm(b), overview=!day&&!varSel;
   let emin=1e9,emax=-1e9; for(let i=i0;i<=i1;i++){emin=Math.min(emin,P[i][2]);emax=Math.max(emax,P[i][2]);}
   const span=emax-emin, step=span>1500?500:span>600?250:100; emin=Math.floor(Math.max(0,emin-40)/step)*step; emax=Math.ceil((emax+60)/step)*step;
   const X=km=>L0+(km-a)/(b-a)*(W-L0-R0), Y=e=>T0+(1-(e-emin)/(emax-emin))*(H-T0-B0);
@@ -309,20 +317,21 @@ function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, 
   ctx.strokeStyle=C_GRID; ctx.lineWidth=1; ctx.fillStyle=C_MUTED; ctx.font='11px system-ui'; ctx.textAlign='right';
   for(let e=emin;e<=emax;e+=step){ ctx.beginPath();ctx.moveTo(L0,Y(e));ctx.lineTo(W-R0,Y(e));ctx.stroke(); ctx.fillText(e,L0-4,Y(e)+4); }
   ctx.beginPath(); ctx.moveTo(X(a),Y(emin)); for(let i=i0;i<=i1;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(b),Y(emin)); ctx.closePath(); ctx.fillStyle=C_AREA; ctx.fill();
-  ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=i0;i<=i1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=MAPCOL[c]||MAPCOL.p; if(i>i0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke();
+  ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=i0;i<=i1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=varSel?'#7B3F9E':(MAPCOL[c]||MAPCOL.p); if(i>i0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke();
   ctx.fillStyle=C_MUTED; ctx.textAlign='center'; ctx.font='11px system-ui'; const kstep=(b-a)>300?100:(b-a)>120?20:10;
   for(let k=Math.ceil(a/kstep)*kstep;k<=b;k+=kstep){ ctx.fillText(k+(k===Math.ceil(a/kstep)*kstep?' km':''),X(k),H-4); }
   ctx.font='600 11px "Barlow Condensed",system-ui';
-  for(const st of S){ if(st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=C_ACC; ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0-4);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
+  if(varSel){ ctx.fillStyle='#7B3F9E'; ctx.textAlign='left'; ctx.fillText(`Variante ${varSel.day}b · Asphalt`, L0+4, T0+6); ctx.textAlign='right'; ctx.fillText(`${S[varSel.day-1].to} ${P[i1][2]} m`, W-R0-3, T0+6); }
+  for(const st of S){ if(!varSel&&st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=C_ACC; ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0-4);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
     ctx.fillStyle=C_ACC; if(overview){ ctx.textAlign='right'; ctx.fillText(st.day, x-3, T0+6); } else { ctx.textAlign=(x>W-70)?'right':'left'; ctx.fillText(`${st.to} ${st.ele} m`, x+(x>W-70?-3:3), T0+6); } } }
   const endSpans=S.filter(st=>st.end_km>a&&st.end_km<=b+1e-6).map(st=>{ const ex=X(st.end_km); const ew=overview?12:ctx.measureText(`${st.to} ${st.ele} m`).width+6; return ex>W-70?[ex-ew,ex]:[ex,ex+ew]; });
-  if(!overview||W>700){ for(const f of FE){ if(f.k!=='pass'||f.km<a||f.km>b) continue; const x=X(f.km), y=Y(f.ele); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.moveTo(x,y-9); ctx.lineTo(x+4,y-2); ctx.lineTo(x-4,y-2); ctx.closePath(); ctx.fill();
+  if(!varSel&&(!overview||W>700)){ for(const f of FE){ if(f.k!=='pass'||f.km<a||f.km>b) continue; const x=X(f.km), y=Y(f.ele); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.moveTo(x,y-9); ctx.lineTo(x+4,y-2); ctx.lineTo(x-4,y-2); ctx.closePath(); ctx.fill();
     if(!overview||f.ele>1300){ const lbl=`${f.n.replace('Passo ','P. ').replace('Capanne di ','')} ${f.ele}`; const tw=ctx.measureText(lbl).width; const right=x+6+tw>W-R0; const span=right?[x-6-tw,x-6]:[x+6,x+6+tw];
       const clash=y-12<T0+14&&endSpans.some(es=>span[0]<es[1]&&span[1]>es[0]); ctx.textAlign=right?'right':'left'; ctx.fillText(lbl, x+(right?-6:6), clash?y+18:y-12); } } }
-  for(const pl of PL){ if(pl.k==='bed'||pl.km<a||pl.km>b||(overview&&pl.k!=='camp')) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?'#2E8B57':'#8B5A2B'; ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
+  for(const pl of PL){ if(varSel||pl.k==='bed'||pl.km<a||pl.km>b||(overview&&pl.k!=='camp')) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?'#2E8B57':'#8B5A2B'; ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
   if(gps&&gps.km>=a&&gps.km<=b){ const x=X(gps.km); ctx.fillStyle='#1E88E5'; ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(gps.km)][2]),5,0,7); ctx.fill(); }
   if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=C_INK; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill();
-    const ci=$('ci'); if(ci){ const st2=stageOf(curKm); ci.textContent=`▸ km ${curKm.toFixed(1)} · ${e} m · noch ${fmtKm(st2.end_km-curKm)} bis ${st2.to}`; } if(!gps) updateNav(); }
+    const ci=$('ci'); if(ci){ const st2=endOf(curKm); ci.textContent=`▸ km ${curKm.toFixed(1)} · ${e} m · noch ${fmtKm(st2.end_km-curKm)} bis ${st2.to}`; } if(!gps) updateNav(); }
   cv._X={a,b,L0,R0,W}; }
 function kmFromEvent(ev){ const r=cv.getBoundingClientRect(), x=ev.clientX-r.left; const {a,b,L0,R0,W}=cv._X; return Math.min(b,Math.max(a,a+(x-L0)/(W-L0-R0)*(b-a))); }
 let dragging=false;
@@ -355,18 +364,18 @@ function startGps(){ if(!navigator.geolocation){ setNav('Kein GPS im Browser —
 function stopGps(){ if(watchId!==null) navigator.geolocation.clearWatch(watchId); watchId=null; follow=false; ctl.classList.remove('on','follow'); if(gpsM){map.removeLayer(gpsM);map.removeLayer(gpsC);gpsM=gpsC=null;} gps=null; updateNav(); drawProfile(); }
 map.on('dragstart zoomstart',()=>{ if(follow&&!prog){ follow=false; ctl.classList.remove('follow'); } });
 function setNav(t,off){ const n=$('nav'); n.textContent=t; n.classList.toggle('off',!!off); }
-function updateNav(){ if(!gps){ if(watchId===null){ const st=stageOf(curKm), e=P[idxAtKm(curKm)][2]; setNav(curKm>0?`▸ km ${curKm.toFixed(1)} · ${e} m · noch ${fmtKm(st.end_km-curKm)} → ${st.to}  (GPS: ◎)`:'GPS aus — ◎ antippen für Standort',true); } return; }
-  const st=stageOf(gps.km);
+function updateNav(){ if(!gps){ if(watchId===null){ const st=endOf(curKm), e=AP()[idxAtKm(curKm)][2]; setNav(curKm>0?`▸ km ${curKm.toFixed(1)} · ${e} m · noch ${fmtKm(st.end_km-curKm)} → ${st.to}  (GPS: ◎)`:'GPS aus — ◎ antippen für Standort',true); } return; }
+  const st=endOf(gps.km);
   let nc=null,nb=null; for(const pl of PL){ if(pl.km<gps.km-0.5) continue; if(pl.k==='camp'&&pl.off<=2&&(!nc||pl.km<nc.km)) nc=pl; if(pl.k!=='camp'&&pl.off<=1.0&&(!nb||pl.km<nb.km)) nb=pl; }
   const off=gps.off>0.3?` · ${gps.off>=1?gps.off.toFixed(1).replace('.',',')+' km':Math.round(gps.off*1000)+' m'} neben Route`:'';
-  setNav(`📍 noch ${fmtKm(st.end_km-gps.km)} → ${st.to}`+(nc?` · ⛺ ${fmtKm(nc.km-gps.km)}`:'')+(nb?` · ${nb.k==='bed'?'🛏':'🏠'} ${fmtKm(nb.km-gps.km)}`:'')+` · km ${gps.km.toFixed(1)}`+off,false); }
+  setNav(`📍 ${varSel?'Variante · ':''}noch ${fmtKm(st.end_km-gps.km)} → ${st.to}`+(nc?` · ⛺ ${fmtKm(nc.km-gps.km)}`:'')+(nb?` · ${nb.k==='bed'?'🛏':'🏠'} ${fmtKm(nb.km-gps.km)}`:'')+` · km ${gps.km.toFixed(1)}`+off,false); }
 // ---- init ----
 let saved=null; try{ saved=JSON.parse(localStorage.getItem('rt.view')||'null'); }catch(e){}
 // hash: #d4  |  #d4/46.54,8.76/13  |  #46.54,8.76/13   (day, optional centre/zoom)
-const h=location.hash.match(/^#(?:d(\d+))?\/?(?:(-?[\d.]+),(-?[\d.]+)\/(\d+))?(\/p)?/);
+const hv=location.hash.match(/^#d(\d+)v$/); const h=location.hash.match(/^#(?:d(\d+))?\/?(?:(-?[\d.]+),(-?[\d.]+)\/(\d+))?(\/p)?/);
 const hd=h&&h[1]?+h[1]:null, hc=h&&h[2]?[+h[2],+h[3]]:null, hz=h&&h[4]?+h[4]:null;
 selectDay(hd!==null?hd:(hc?day:(saved&&saved.day)||0), !!hc||(hd===null&&saved&&saved.c));
-if(hc){ map.setView(hc,hz||13); if(h[5]){ const n=nearest(hc[0],hc[1]); setCursor(n.km,false); setTimeout(()=>cursor.openPopup(),400); } } else if(hd===null&&saved&&saved.c){ try{ map.setView(saved.c,saved.z); }catch(e){} }
+if(hv){ const v=VR.find(x=>x.day===+hv[1]); if(v) selectVariant(v); } else if(hc){ map.setView(hc,hz||13); if(h[5]){ const n=nearest(hc[0],hc[1]); setCursor(n.km,false); setTimeout(()=>cursor.openPopup(),400); } } else if(hd===null&&saved&&saved.c){ try{ map.setView(saved.c,saved.z); }catch(e){} }
 let saveT=null; map.on('moveend',()=>{ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem('rt.view',JSON.stringify({day,c:map.getCenter(),z:map.getZoom()})); }catch(e){} },400); });
 document.addEventListener('keydown',e=>{ if(e.metaKey||e.ctrlKey||e.altKey) return; const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return; if(e.key==='ArrowRight'&&day<ND) selectDay(day+1); else if(e.key==='ArrowLeft'&&day>0) selectDay(day-1); else if(e.key==='l'||e.key==='L') locateTap(); });
 wxZoom(); declutter(); relabel(); routeStyle(); if(innerHeight<600) sheet.classList.add('min'); window.addEventListener('resize',drawProfile); if(document.fonts) document.fonts.ready.then(drawProfile); setTimeout(drawProfile,60);
