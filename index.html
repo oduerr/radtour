@@ -351,7 +351,7 @@ function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.
   const C_GRID=css('--grid'), C_MUTED=css('--muted'), C_INK=css('--ink'), C_ACC=css('--accent'), C_AREA=css('--area');
   ctx.strokeStyle=C_GRID; ctx.lineWidth=1; ctx.fillStyle=C_MUTED; ctx.font=F+'px system-ui'; ctx.textAlign='right';
   for(let e=emin;e<=emax;e+=step){ ctx.beginPath();ctx.moveTo(L0,Y(e));ctx.lineTo(W-R0,Y(e));ctx.stroke(); ctx.fillText(e,L0-4,Y(e)+4); }
-  const j0=Math.max(0,i0-1), j1=Math.min(P.length-1,i1+1); ctx.save();   // one point beyond each edge, clipped: the line reaches the border ctx.beginPath(); ctx.rect(L0,0,W-L0-R0,H); ctx.clip();
+  const j0=Math.max(0,i0-1), j1=Math.min(P.length-1,i1+1); ctx.save(); ctx.beginPath(); ctx.rect(L0,0,W-L0-R0,H); ctx.clip();   // one point beyond each edge, clipped: the line reaches the border
   ctx.beginPath(); ctx.moveTo(X(P[j0][3]),Y(emin)); for(let i=j0;i<=j1;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(P[j1][3]),Y(emin)); ctx.closePath(); ctx.fillStyle=C_AREA; ctx.fill();
   ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=j0;i<=j1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=varSel?'#7B3F9E':(MAPCOL[c]||MAPCOL.p); if(i>j0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke(); ctx.restore();
   ctx.fillStyle=C_MUTED; ctx.textAlign='center'; ctx.font=F+'px system-ui'; const kstep=(b-a)>300?100:(b-a)>120?20:(b-a)>40?10:(b-a)>15?5:(b-a)>6?2:1;
