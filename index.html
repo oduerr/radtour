@@ -49,6 +49,7 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 .stat b{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:19px;font-weight:600}
 .stat span{color:var(--muted);font-size:13px}
 .stat .ci{color:var(--ink)}
+.stat .win{color:var(--accent);font-weight:600}
 .strip{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 6px;align-items:center;white-space:nowrap}
 .strip::-webkit-scrollbar{display:none}
 .strip a,.strip button{flex:0 0 auto;text-decoration:none;color:var(--ink);background:var(--chip);border:0;border-radius:999px;padding:0 10px;height:30px;line-height:30px;font:600 13px "Barlow Condensed",system-ui,sans-serif;cursor:pointer}
@@ -64,7 +65,9 @@ html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family
 @media (max-width:480px){.legend span.x{display:none} .stat .from{display:none}}
 @media (max-width:400px){.hdr .sub{display:none}}
 @media (pointer:coarse) and (max-width:899px){.leaflet-control-zoom{display:none}}
-@media (max-width:899px){.leaflet-bottom.leaflet-left{display:none}}
+@media (max-width:899px){.leaflet-bottom.leaflet-left{bottom:var(--sheet-h,0px);transition:bottom .25s} .leaflet-control-attribution{display:none}}
+.leaflet-control-scale-line{background:var(--panel);color:var(--ink);border:2px solid var(--ink);border-top:0;font:600 11px system-ui,sans-serif;line-height:1.1;padding:2px 5px 1px;text-shadow:none;font-variant-numeric:tabular-nums;box-shadow:0 1px 3px rgba(0,0,0,.25);border-radius:0 0 3px 3px}
+body.hc .leaflet-control-scale-line{background:#fff;color:#000;border-color:#000;border-width:3px;font-size:14px;padding:3px 6px 2px}
 @media (min-width:900px){#prof{height:180px} .sheet{left:auto;right:0;width:min(560px,42vw);border-left:1px solid var(--rule);border-top-left-radius:12px} .hdr .bar{max-width:760px} :root{--hdr-h:96px}}
 .leaflet-control-gear a{font-size:20px;text-align:center;display:block;cursor:pointer;text-decoration:none;color:#333}
 .leaflet-control-gear.on a{background:#1D6E8C;color:#fff}
@@ -139,6 +142,7 @@ body.big .gpsdot{transform:scale(1.5)}
   <label><input type="checkbox" id="opt-hc"><span>Hoher Kontrast<small>grosse Schrift, dicke Linie – zum Lesen beim Fahren</small></span></label>
   <label><input type="checkbox" id="opt-big"><span>Grosse Symbole<small>Zelt, Hütte, Bett, Pässe 1,7×</small></span></label>
   <label><input type="checkbox" id="opt-all"><span>Unterkünfte immer zeigen<small>Betten und Hütten in allen Zoomstufen (Planung)</small></span></label>
+  <label><input type="checkbox" id="opt-follow"><span>Profil folgt Karte<small>Profil zeigt den Teil der Route, der auf der Karte zu sehen ist</small></span></label>
 </div>
 <div class="sheet" id="sheet">
   <div class="handle" id="handle"><i></i></div>
@@ -159,7 +163,7 @@ const MAPCOL={p:'#2C3E63',g:'#E08A00',t:'#E0242A'};          // theme-independen
 const $=id=>document.getElementById(id);
 let day=0, varSel=null;
 const AP=()=>varSel?varSel.pts:P;
-let OPT={hc:false,big:false,all:false}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rt.opt')||'{}')); }catch(e){}
+let OPT={hc:false,big:false,all:false,follow:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rt.opt')||'{}')); }catch(e){}
 function applyOpt(){ document.body.classList.toggle('hc',OPT.hc); document.body.classList.toggle('big',OPT.big); try{ localStorage.setItem('rt.opt',JSON.stringify(OPT)); }catch(e){} }
 applyOpt();
 // ---- flatten points ----
@@ -193,6 +197,7 @@ const sheet=$('sheet');
 const map=L.map('map',{preferCanvas:true,zoomControl:false,attributionControl:false});
 L.control.zoom({position:'topright'}).addTo(map);
 L.control.attribution({position:'bottomleft',prefix:false}).addTo(map);
+L.control.scale({position:'bottomleft',imperial:false,maxWidth:120}).addTo(map);
 const topo=L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:17,attribution:'© OpenStreetMap, SRTM · © OpenTopoMap (CC-BY-SA)'});
 const osm=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'© OpenStreetMap'});
 const swiss=L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',{maxZoom:18,attribution:'© swisstopo'});
@@ -205,7 +210,7 @@ const routeLines=RT.track.map(s=>L.polyline(s.pts.map(q=>[q[0],q[1]]),{color:MAP
 const casing=RT.track.map((s,i)=>routeLayer.getLayers()[i]);
 function routeStyle(){ const z=map.getZoom(); const w=(z>=12?5:4)+(OPT.hc?3:0); routeLines.forEach(l=>l.setStyle({weight:w})); casing.forEach(l=>l.setStyle({weight:w+4,color:OPT.hc?'#000':'#fff',opacity:OPT.hc?.9:.8})); }
 map.on('zoomend',routeStyle);
-map.on('click',e=>{ const n=nearest(e.latlng.lat,e.latlng.lng); const q=P[n.i]; const px=map.latLngToContainerPoint([q[0],q[1]]).distanceTo(map.latLngToContainerPoint(e.latlng)); if(px<=28){ setCursor(n.km,false); cursor.closeTooltip(); cursor.openPopup(); } });
+map.on('click',e=>{ const n=nearest(e.latlng.lat,e.latlng.lng); const q=AP()[n.i]; const px=map.latLngToContainerPoint([q[0],q[1]]).distanceTo(map.latLngToContainerPoint(e.latlng)); if(px<=28){ setCursor(n.km,false); cursor.closeTooltip(); cursor.openPopup(); } });
 // ---- places ----
 const PL=RT.places||[]; const TY={camp_site:'Zeltplatz',caravan_site:'Stellplatz (Zelt ok)',alpine_hut:'Berghütte',wilderness_hut:'Biwak / Schutzhütte (unbewirtet)',hostel:'Hostel',hotel:'Hotel',guest_house:'Pension / B&B',chalet:'Chalet',apartment:'Ferienwohnung',motel:'Motel'};
 function popup(pl){ const st=stageOf(pl.km); const off=pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m';
@@ -262,7 +267,8 @@ for(const st of S){ const m=L.marker([st.lat,st.lon],{icon:L.divIcon({className:
   .bindPopup(()=>{ const lo=PL.filter(pl=>pl.e&&Math.abs(pl.km-st.end_km)<=4).sort((x,y)=>(x.k==='camp'?0:x.k==='bed'?2:1)-(y.k==='camp'?0:y.k==='bed'?2:1)||x.off-y.off);
     const li=lo.map(pl=>`<div>${pl.k==='camp'?'⛺':pl.k==='bed'?'🛏':'🏠'} ${esc(pl.n||TY[pl.t])} <span style="color:var(--muted)">${pl.off>=1?pl.off.toFixed(1).replace('.',',')+' km':Math.round(pl.off*1000)+' m'}</span>${pl.p?` · <a href="tel:${esc(pl.p.replace(/\s/g,''))}">${esc(pl.p)}</a>`:''}</div>`).join('');
     return `<div class="ty">Etappenziel Tag ${st.day} · km ${st.end_km}</div><b>${esc(st.to)}</b> <span style="color:var(--muted)">${st.ele} m</span><br>${esc(st.from)} → ${esc(st.to)}: ${st.km} km · ↑ ${st.up} m · ↓ ${st.down} m${li?`<div style="margin-top:6px;font-size:13px">${li}</div>`:'<div style="margin-top:6px;font-size:13px;color:var(--muted)">Keine Unterkunft im Umkreis erfasst</div>'}<div class="links"><a href="#" class="today" data-day="${st.day}">Tag ${st.day} zeigen</a><a href="${wx(st.lat,st.lon,st.to)}" target="_blank" rel="noopener">Wetter</a></div>`+ext(st.lat,st.lon,st.to); },popt()).addTo(map); }
-map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); const km=+a.dataset.km; const [ra,rb]=range(); if(km<ra||km>rb) selectDay(stageOf(km).day,true); setCursor(km,true); sheet.classList.remove('min'); drawProfile();};
+map.on('popupopen',e=>{ const el=e.popup.getElement(); const a=el.querySelector('.tokm'); if(a) a.onclick=ev=>{ev.preventDefault(); const km=+a.dataset.km; const [ra,rb]=range(); if(km<ra||km>rb) selectDay(stageOf(km).day,true); const wasMin=sheet.classList.contains('min'); sheet.classList.remove('min');
+    const go=()=>{ syncWin(); if(OPT.follow&&!(km>=win.a&&km<=win.b)){ const p=AP()[idxAtKm(km)]; map.panTo([p[0],p[1]]); } setCursor(km,true); }; wasMin?setTimeout(go,280):go(); };
   const b=el.querySelector('.today'); if(b) b.onclick=ev=>{ev.preventDefault(); selectDay(+b.dataset.day); map.closePopup();};
   const c=el.querySelector('.varsel'); if(c) c.onclick=ev=>{ev.preventDefault(); const v=VR.find(x=>x.day===+c.dataset.day); if(v) selectVariant(v); map.closePopup();}; });
 // ---- strips ----
@@ -276,11 +282,11 @@ function strips(){ let [a,b]=range(); if(varSel){ const st=S[varSel.day-1]; a=st
   fx.innerHTML='<span class="lbl">Punkte</span>'+hint+vh+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${esc(f.n)}</button>`).join('');
   fx.querySelectorAll('button[data-var]').forEach(bt=>bt.onclick=()=>{ const v=VR.find(x=>x.day===+bt.dataset.var); if(v) varSel===v?selectDay(v.day):selectVariant(v); });
   fx.querySelectorAll('button[data-orig]').forEach(bt=>bt.onclick=()=>selectDay(varSel.day));
-  fx.querySelectorAll('button[data-km]').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=P[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
+  fx.querySelectorAll('button[data-km]').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=AP()[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
 // ---- cursor ----
 const cursor=L.marker([P[0][0],P[0][1]],{icon:L.divIcon({className:'cursordot',iconSize:[16,16]}),zIndexOffset:900,title:'Punkt auf der Route – antippen für Links'}).addTo(map);
-cursor.bindPopup(()=>{ const i=idxAtKm(curKm), q=P[i], st=stageOf(curKm); return `<div class="ty">Route · Tag ${st.day} · Fotos &amp; Karten für diesen Punkt</div><b>km ${curKm.toFixed(1)} · ${q[2]} m</b><br>noch ${fmtKm(st.end_km-curKm)} bis ${esc(st.to)}<div class="links"><a href="${wx(q[0],q[1],'km '+curKm.toFixed(1))}" target="_blank" rel="noopener">Wetter</a><a href="#" class="share" data-km="${curKm.toFixed(1)}">Link kopieren</a></div>`+ext(q[0],q[1],'km '+curKm.toFixed(1)); },popt());
-map.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('.share'); if(a) a.onclick=ev=>{ ev.preventDefault(); const q=P[idxAtKm(curKm)]; const u=location.origin+location.pathname+`#d${stageOf(curKm).day}/${q[0].toFixed(5)},${q[1].toFixed(5)}/15/p`; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{a.textContent='Kopiert ✓';},()=>{prompt('Link:',u);}); }; });
+cursor.bindPopup(()=>{ const i=idxAtKm(curKm), q=AP()[i], st=endOf(curKm); return `<div class="ty">${varSel?'Variante':'Route'} · Tag ${st.day} · Fotos &amp; Karten für diesen Punkt</div><b>km ${curKm.toFixed(1)} · ${q[2]} m</b><br>noch ${fmtKm(st.end_km-curKm)} bis ${esc(st.to)}<div class="links"><a href="${wx(q[0],q[1],'km '+curKm.toFixed(1))}" target="_blank" rel="noopener">Wetter</a><a href="#" class="share" data-km="${curKm.toFixed(1)}">Link kopieren</a></div>`+ext(q[0],q[1],'km '+curKm.toFixed(1)); },popt());
+map.on('popupopen',e=>{ const a=e.popup.getElement().querySelector('.share'); if(a) a.onclick=ev=>{ ev.preventDefault(); const q=AP()[idxAtKm(curKm)]; const u=location.origin+location.pathname+`#d${endOf(curKm).day}/${q[0].toFixed(5)},${q[1].toFixed(5)}/15/p`; (navigator.clipboard?navigator.clipboard.writeText(u):Promise.reject()).then(()=>{a.textContent='Kopiert ✓';},()=>{prompt('Link:',u);}); }; });
 cursor.bindTooltip('',{direction:'top',className:'rt',offset:[0,-8]});
 let curKm=0;
 function setCursor(km,openTip){ curKm=km; const i=idxAtKm(km), p=AP()[i]; cursor.setLatLng([p[0],p[1]]); const st=endOf(km);
@@ -293,33 +299,65 @@ function range(){ if(varSel) return [0,varSel.km]; if(!day) return [0,TOTAL]; co
 function fitPad(){ const sh=sheet.getBoundingClientRect(), W=innerWidth, H=innerHeight, hdr=document.querySelector('.hdr .bar').getBoundingClientRect();
   const bottom=Math.max(0,H-sh.top); return W>=900?{paddingTopLeft:[24,hdr.bottom+16],paddingBottomRight:[sh.width+24,16]}:{paddingTopLeft:[16,hdr.bottom+12],paddingBottomRight:[16,bottom+12]}; }
 let prog=false; function progMove(fn){ prog=true; try{ fn(); } finally { setTimeout(()=>{prog=false;},50); } }
+// Leaflet ignores setView while a zoom animation runs (rapid chip taps / arrow keys): queue the latest fit until zoomend
+let pendingFit=null; map.on('zoomend',()=>{ if(pendingFit&&!map._animatingZoom){ const g=pendingFit; pendingFit=null; g(); } });
+function fitRoute(b){ const pad=fitPad(), go=()=>progMove(()=>map.fitBounds(b,pad)); if(map._animatingZoom) pendingFit=go; else { pendingFit=null; go(); } return map._loaded?map._getBoundsCenterZoom(b,pad):null; }
 function selectDay(d,noFit){ varSel=null; day=Math.max(0,Math.min(ND,d|0)); if(!noFit) userMoved=false; [...chips.children].forEach((c,i)=>{c.classList.toggle('on',i===day); if(i===day) c.scrollIntoView({inline:'center',block:'nearest'});});
   const [a,b]=range();
   const stat=$('stat');
-  if(!day) stat.innerHTML=`<b>Gesamt</b><span>${Math.floor(TOTAL)} km</span><span>↑ ${UP.toLocaleString('de')} m</span><span>↓ ${DN.toLocaleString('de')} m</span><span>${ND} Tage</span><span class="ci" id="ci"></span>`;
-  else { const st=S[day-1]; stat.innerHTML=`<b>Tag ${st.day}</b><span><span class="from">${esc(st.from)} → </span><strong>${esc(st.to)}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="ci" id="ci"></span>`; }
-  history.replaceState(null,'',day?('#d'+day):location.pathname); if(curKm<a||curKm>b) curKm=a; buildPlaces(); strips(); syncVariants(); drawProfile(); updateNav();
-  if(!noFit){ const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]); progMove(()=>map.fitBounds(L.latLngBounds(pts),fitPad())); } }
+  if(!day) stat.innerHTML=`<b>Gesamt</b><span>${Math.floor(TOTAL)} km</span><span>↑ ${UP.toLocaleString('de')} m</span><span>↓ ${DN.toLocaleString('de')} m</span><span>${ND} Tage</span><span class="win" id="win"></span><span class="ci" id="ci"></span>`;
+  else { const st=S[day-1]; stat.innerHTML=`<b>Tag ${st.day}</b><span><span class="from">${esc(st.from)} → </span><strong>${esc(st.to)}</strong></span><span>${st.km} km</span><span>↑ ${st.up.toLocaleString('de')} m</span><span>↓ ${st.down.toLocaleString('de')} m</span><span class="win" id="win"></span><span class="ci" id="ci"></span>`; }
+  history.replaceState(null,'',day?('#d'+day):location.pathname); if(curKm<a||curKm>b) curKm=a; buildPlaces(); strips(); syncVariants();
+  // fit first: a fitted day shows the whole stage, so the window is the full range until moveend refines it
+  if(!noFit){ const pts=P.slice(idxAtKm(a),idxAtKm(b)+1).map(p=>[p[0],p[1]]); const v=fitRoute(L.latLngBounds(pts)); syncWin(v); } else syncWin();
+  drawProfile(); updateNav(); }
 function selectVariant(v){ varSel=v; day=v.day; [...chips.children].forEach((c,i)=>c.classList.toggle('on',i===day)); userMoved=false;
-  const stat=$('stat'); stat.innerHTML=`<b>Tag ${v.day}b</b><span><strong>${esc(v.n.replace(/^Tag \d+b · /,''))}</strong></span><span>${v.km} km</span><span>↑ ${v.up} m</span><span class="ci" id="ci"></span>`;
-  history.replaceState(null,'',`#d${v.day}v`); curKm=0; buildPlaces(); strips(); syncVariants(); drawProfile(); updateNav(); setCursor(0,false);
-  const e=varLines.find(x=>x.v===v); if(e) progMove(()=>map.fitBounds(e.l.getBounds(),fitPad())); }
+  const stat=$('stat'); stat.innerHTML=`<b>Tag ${v.day}b</b><span><strong>${esc(v.n.replace(/^Tag \d+b · /,''))}</strong></span><span>${v.km} km</span><span>↑ ${v.up} m</span><span class="win" id="win"></span><span class="ci" id="ci"></span>`;
+  history.replaceState(null,'',`#d${v.day}v`); curKm=0; buildPlaces(); strips(); syncVariants();
+  const e=varLines.find(x=>x.v===v); syncWin(e?fitRoute(e.l.getBounds()):null);
+  updateNav(); setCursor(0,false); }
 window.addEventListener('hashchange',()=>{ const h=location.hash.match(/^#d(\d+)/); if(!h) return; const d=+h[1]; if(d!==day) selectDay(d); });
+// ---- profile window: the part of the route inside the visible map (between header and sheet) ----
+let win={a:0,b:TOTAL,part:false,out:false};
+function visLatLon(center,zoom){ const sz=map.getSize(), hdr=document.querySelector('.hdr .bar').getBoundingClientRect(), sh=sheet.getBoundingClientRect(), desk=innerWidth>=900;
+  const x1=desk?Math.min(sz.x,sh.left):sz.x, y1=desk?sz.y:Math.min(sz.y,sh.top); if(x1<=0||y1<=hdr.bottom) return null;
+  if(center===undefined){ center=map.getCenter(); zoom=map.getZoom(); } const c=map.project(center,zoom), h=sz.divideBy(2);
+  const nw=map.unproject(c.subtract(h).add([0,hdr.bottom]),zoom), se=map.unproject(c.subtract(h).add([x1,y1]),zoom); return [se.lat,nw.lat,nw.lng,se.lng]; }
+// km span of A[i0..i1] whose segments touch the lat/lon box B, or null. Segments, not just points: at high zoom a straight stretch can cross the view with both ends outside
+function visSpan(A,i0,i1,B){ let lo=Infinity,hi=-Infinity,q=null,qc=0; const code=r=>(r.x<B.min.x?1:r.x>B.max.x?2:0)|(r.y<B.min.y?4:r.y>B.max.y?8:0);
+  for(let i=i0;i<=i1;i++){ const p=A[i], r=L.point(p[1],p[0]), rc=code(r);
+    if(!rc||(q&&!(qc&rc)&&(!qc||L.LineUtil.clipSegment(q,r,B,false,true)))){ const k0=q?A[i-1][3]:p[3]; if(k0<lo) lo=k0; if(p[3]>hi) hi=p[3]; }
+    q=r; qc=rc; }
+  return lo===Infinity?null:[lo,hi]; }
+// The profile shows the part of the route that is on screen (whole route, or the selected variant), whatever the zoom.
+// The day only decides where the map is fitted. Toggle off (or nothing visible): the whole selected stage.
+function srange(){ return varSel?[0,varSel.km]:[0,TOTAL]; }
+function syncWin(view){ const [ra,rb]=range(), [sa,sb]=srange(); const o=win; let w={a:ra,b:rb,part:false,out:false};
+  if(OPT.follow&&map._loaded){ const V=view?visLatLon(view.center,view.zoom):visLatLon(); if(V){ const B=L.bounds([V[2],V[0]],[V[3],V[1]]); const sp=visSpan(AP(),idxAtKm(sa),idxAtKm(sb),B);
+    if(!sp) w.out=true;
+    else { let [lo,hi]=sp; if(hi-lo<2){ const m=(lo+hi)/2; lo=Math.max(sa,m-1); hi=Math.min(sb,lo+2); lo=Math.max(sa,hi-2); }
+      w.a=lo; w.b=hi; w.part=lo>sa||hi<sb; } } }
+  win=w; return w.a!==o.a||w.b!==o.b||w.part!==o.part||w.out!==o.out; }
+map.on('moveend',()=>{ if(syncWin()) drawProfile(); });   // ~0.5 ms per update, no debounce needed
 // ---- profile ----
 const cv=$('prof'), ctx=cv.getContext('2d');
-function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
+function syncSheet(){ const h=sheet.classList.contains('min')?66+Math.max(0,parseFloat(getComputedStyle(sheet).paddingBottom)-8):sheet.offsetHeight; const v=Math.round(h)+'px'; const r=document.documentElement.style; if(r.getPropertyValue('--sheet-h')!==v) r.setProperty('--sheet-h',v); }
+function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.clientWidth, H=cv.clientHeight; if(!W) return;
   if(cv.width!==W*dpr||cv.height!==H*dpr){cv.width=W*dpr;cv.height=H*dpr;} ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
-  const P=AP(); const [a,b]=range(), L0=34,R0=8,T0=14,B0=18, i0=idxAtKm(a), i1=idxAtKm(b), overview=!day&&!varSel;
+  const P=AP(), {a,b}=win, F=OPT.hc?13:11, L0=OPT.hc?40:34,R0=8,T0=14,B0=18, i0=idxAtKm(a), i1=idxAtKm(b), overview=!varSel&&(b-a)>=150;
   let emin=1e9,emax=-1e9; for(let i=i0;i<=i1;i++){emin=Math.min(emin,P[i][2]);emax=Math.max(emax,P[i][2]);}
   const span=emax-emin, step=span>1500?500:span>600?250:100; emin=Math.floor(Math.max(0,emin-40)/step)*step; emax=Math.ceil((emax+60)/step)*step;
   const X=km=>L0+(km-a)/(b-a)*(W-L0-R0), Y=e=>T0+(1-(e-emin)/(emax-emin))*(H-T0-B0);
   const C_GRID=css('--grid'), C_MUTED=css('--muted'), C_INK=css('--ink'), C_ACC=css('--accent'), C_AREA=css('--area');
-  ctx.strokeStyle=C_GRID; ctx.lineWidth=1; ctx.fillStyle=C_MUTED; ctx.font='11px system-ui'; ctx.textAlign='right';
+  ctx.strokeStyle=C_GRID; ctx.lineWidth=1; ctx.fillStyle=C_MUTED; ctx.font=F+'px system-ui'; ctx.textAlign='right';
   for(let e=emin;e<=emax;e+=step){ ctx.beginPath();ctx.moveTo(L0,Y(e));ctx.lineTo(W-R0,Y(e));ctx.stroke(); ctx.fillText(e,L0-4,Y(e)+4); }
-  ctx.beginPath(); ctx.moveTo(X(a),Y(emin)); for(let i=i0;i<=i1;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(b),Y(emin)); ctx.closePath(); ctx.fillStyle=C_AREA; ctx.fill();
-  ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=i0;i<=i1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=varSel?'#7B3F9E':(MAPCOL[c]||MAPCOL.p); if(i>i0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke();
-  ctx.fillStyle=C_MUTED; ctx.textAlign='center'; ctx.font='11px system-ui'; const kstep=(b-a)>300?100:(b-a)>120?20:10;
-  for(let k=Math.ceil(a/kstep)*kstep;k<=b;k+=kstep){ ctx.fillText(k+(k===Math.ceil(a/kstep)*kstep?' km':''),X(k),H-4); }
+  const j0=Math.max(0,i0-1), j1=Math.min(P.length-1,i1+1); ctx.save();   // one point beyond each edge, clipped: the line reaches the border ctx.beginPath(); ctx.rect(L0,0,W-L0-R0,H); ctx.clip();
+  ctx.beginPath(); ctx.moveTo(X(P[j0][3]),Y(emin)); for(let i=j0;i<=j1;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(P[j1][3]),Y(emin)); ctx.closePath(); ctx.fillStyle=C_AREA; ctx.fill();
+  ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=j0;i<=j1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=varSel?'#7B3F9E':(MAPCOL[c]||MAPCOL.p); if(i>j0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke(); ctx.restore();
+  ctx.fillStyle=C_MUTED; ctx.textAlign='center'; ctx.font=F+'px system-ui'; const kstep=(b-a)>300?100:(b-a)>120?20:(b-a)>40?10:(b-a)>15?5:(b-a)>6?2:1;
+  const wlbl=win.part&&innerWidth<900?`Ausschnitt ${fmtKm(b-a)}`:''; ctx.font=`600 ${F}px "Barlow Condensed",system-ui`; const wlw=wlbl?ctx.measureText(wlbl).width:0; ctx.font=F+'px system-ui';
+  for(let k=Math.ceil(a/kstep)*kstep;k<=b;k+=kstep){ if(wlw&&X(k)+14>W-R0-wlw-8) break; ctx.fillText(k+(k===Math.ceil(a/kstep)*kstep?' km':''),X(k),H-4); }
+  if(wlbl){ ctx.fillStyle=C_ACC; ctx.textAlign='right'; ctx.font=`600 ${F}px "Barlow Condensed",system-ui`; ctx.fillText(wlbl,W-R0-4,H-4); }
   ctx.font='600 11px "Barlow Condensed",system-ui';
   if(varSel){ ctx.fillStyle='#7B3F9E'; ctx.textAlign='left'; ctx.fillText(`Variante ${varSel.day}b · Asphalt`, L0+4, T0+6); ctx.textAlign='right'; ctx.fillText(`${S[varSel.day-1].to} ${P[i1][2]} m`, W-R0-3, T0+6); }
   for(const st of S){ if(!varSel&&st.end_km>a&&st.end_km<=b+1e-6){ const x=X(st.end_km); ctx.strokeStyle=C_ACC; ctx.setLineDash([3,3]); ctx.beginPath();ctx.moveTo(x,T0-4);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.setLineDash([]);
@@ -330,17 +368,20 @@ function drawProfile(){ const dpr=window.devicePixelRatio||1, W=cv.clientWidth, 
       const clash=y-12<T0+14&&endSpans.some(es=>span[0]<es[1]&&span[1]>es[0]); ctx.textAlign=right?'right':'left'; ctx.fillText(lbl, x+(right?-6:6), clash?y+18:y-12); } } }
   for(const pl of PL){ if(varSel||pl.k==='bed'||pl.km<a||pl.km>b||(overview&&pl.k!=='camp')) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?'#2E8B57':'#8B5A2B'; ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
   if(gps&&gps.km>=a&&gps.km<=b){ const x=X(gps.km); ctx.fillStyle='#1E88E5'; ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(gps.km)][2]),5,0,7); ctx.fill(); }
-  if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=C_INK; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill();
-    const ci=$('ci'); if(ci){ const st2=endOf(curKm); ci.textContent=`▸ km ${curKm.toFixed(1)} · ${e} m · noch ${fmtKm(st2.end_km-curKm)} bis ${st2.to}`; } if(!gps) updateNav(); }
+  if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=C_INK; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill(); }
+  { const ci=$('ci'); if(ci){ const st2=endOf(curKm); ci.textContent=`▸ km ${curKm.toFixed(1)} · ${P[idxAtKm(curKm)][2]} m · noch ${fmtKm(st2.end_km-curKm)} bis ${st2.to}`; } if(!gps) updateNav(); }
+  if(win.part){ ctx.strokeStyle=C_ACC; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(L0+1.5,T0-4); ctx.lineTo(L0+1.5,H-B0+3); ctx.moveTo(W-R0-1.5,T0-4); ctx.lineTo(W-R0-1.5,H-B0+3); ctx.stroke(); }
+  const wl=$('win'); if(wl) wl.textContent=win.part?`Ausschnitt ${fmtKm(b-a)}`:'';
+  if(win.out){ ctx.fillStyle=css('--bg'); ctx.globalAlpha=.6; ctx.fillRect(L0,0,W-L0-R0,H-B0); ctx.globalAlpha=1; ctx.fillStyle=C_INK; ctx.font='600 13px "Barlow Condensed",system-ui'; ctx.textAlign='center'; ctx.fillText(`${varSel?'Variante':'Route'} ausserhalb des Ausschnitts`,L0+(W-L0-R0)/2,T0+(H-T0-B0)/2+4); }
   cv._X={a,b,L0,R0,W}; }
 function kmFromEvent(ev){ const r=cv.getBoundingClientRect(), x=ev.clientX-r.left; const {a,b,L0,R0,W}=cv._X; return Math.min(b,Math.max(a,a+(x-L0)/(W-L0-R0)*(b-a))); }
 let dragging=false;
 cv.addEventListener('pointerdown',e=>{dragging=true;cv.setPointerCapture(e.pointerId);setCursor(kmFromEvent(e),true);});
 cv.addEventListener('pointermove',e=>{ if(dragging||e.pointerType==='mouse') setCursor(kmFromEvent(e),true); });
 cv.addEventListener('pointerup',()=>{dragging=false;}); cv.addEventListener('pointercancel',()=>{dragging=false;});
-cv.addEventListener('dblclick',()=>{ const p=P[idxAtKm(curKm)]; map.setView([p[0],p[1]],Math.max(map.getZoom(),14)); });
+cv.addEventListener('dblclick',()=>{ const p=AP()[idxAtKm(curKm)]; map.setView([p[0],p[1]],Math.max(map.getZoom(),14)); });
 let userMoved=false; map.on('dragstart zoomstart',()=>{ if(!prog) userMoved=true; });
-$('handle').onclick=()=>{ sheet.classList.toggle('min'); setTimeout(()=>{ drawProfile(); if(day&&!userMoved) selectDay(day); },280); };
+$('handle').onclick=()=>{ sheet.classList.toggle('min'); syncSheet(); setTimeout(()=>{ if(!userMoved&&varSel) selectVariant(varSel); else if(!userMoved&&day) selectDay(day); else { syncWin(); drawProfile(); } },280); };
 // ---- GPS ----
 let gps=null, gpsM=null, gpsC=null, watchId=null, follow=false, ctl=null;
 const Locate=L.Control.extend({onAdd(){ const d=L.DomUtil.create('div','leaflet-bar leaflet-control leaflet-control-locate'); const a=L.DomUtil.create('a','',d); a.href='#'; a.title='Standort (l)'; a.innerHTML='◎';
@@ -350,7 +391,7 @@ const Gear=L.Control.extend({onAdd(){ const d=L.DomUtil.create('div','leaflet-ba
   L.DomEvent.on(a,'click',e=>{ L.DomEvent.stop(e); const g=$('gear'); const open=!g.classList.contains('open'); g.classList.toggle('open',open); d.classList.toggle('on',open); if(open){ const r=d.getBoundingClientRect(); g.style.top=r.top+'px'; } }); return d; }});
 new Gear({position:'topright'}).addTo(map);
 map.on('click dragstart',()=>{ $('gear').classList.remove('open'); document.querySelector('.leaflet-control-gear').classList.remove('on'); });
-for(const k of ['hc','big','all']){ const el=$('opt-'+k); el.checked=!!OPT[k]; el.onchange=()=>{ OPT[k]=el.checked; applyOpt(); routeStyle(); bedsShown=null; syncBeds(); declutter(); drawProfile(); }; }
+for(const k of ['hc','big','all','follow']){ const el=$('opt-'+k); el.checked=!!OPT[k]; el.onchange=()=>{ OPT[k]=el.checked; applyOpt(); routeStyle(); bedsShown=null; syncBeds(); declutter(); syncWin(); drawProfile(); }; }
 function locateTap(){ if(watchId===null) startGps(); else if(!follow){ follow=true; ctl.classList.add('follow'); if(gps) progMove(()=>map.setView([gps.lat,gps.lon],Math.max(map.getZoom(),14))); } else stopGps(); }
 function startGps(){ if(!navigator.geolocation){ setNav('Kein GPS im Browser — auf dem Handy braucht die Seite https.',true); return; }
   ctl.classList.add('on','follow'); follow=true; setNav('Suche Standort …',true);
@@ -378,7 +419,7 @@ selectDay(hd!==null?hd:(hc?day:(saved&&saved.day)||0), !!hc||(hd===null&&saved&&
 if(hv){ const v=VR.find(x=>x.day===+hv[1]); if(v) selectVariant(v); } else if(hc){ map.setView(hc,hz||13); if(h[5]){ const n=nearest(hc[0],hc[1]); setCursor(n.km,false); setTimeout(()=>cursor.openPopup(),400); } } else if(hd===null&&saved&&saved.c){ try{ map.setView(saved.c,saved.z); }catch(e){} }
 let saveT=null; map.on('moveend',()=>{ clearTimeout(saveT); saveT=setTimeout(()=>{ try{ localStorage.setItem('rt.view',JSON.stringify({day,c:map.getCenter(),z:map.getZoom()})); }catch(e){} },400); });
 document.addEventListener('keydown',e=>{ if(e.metaKey||e.ctrlKey||e.altKey) return; const t=e.target; if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable)) return; if(e.key==='ArrowRight'&&day<ND) selectDay(day+1); else if(e.key==='ArrowLeft'&&day>0) selectDay(day-1); else if(e.key==='l'||e.key==='L') locateTap(); });
-wxZoom(); declutter(); relabel(); routeStyle(); if(innerHeight<600) sheet.classList.add('min'); window.addEventListener('resize',drawProfile); if(document.fonts) document.fonts.ready.then(drawProfile); setTimeout(drawProfile,60);
+wxZoom(); declutter(); relabel(); routeStyle(); if(innerHeight<600) sheet.classList.add('min'); window.addEventListener('resize',()=>{ syncWin(); drawProfile(); }); if(document.fonts) document.fonts.ready.then(drawProfile); setTimeout(drawProfile,60);
 })();
 </script>
 </body>
