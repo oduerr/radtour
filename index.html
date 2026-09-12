@@ -151,7 +151,7 @@ body.big .gpsdot{transform:scale(1.5)}
   <div class="strip" id="wx"></div>
   <div class="strip" id="fx"></div>
   <canvas id="prof"></canvas>
-  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span><i style="background:#7B3F9E;height:3px;border-top:2px dashed #7B3F9E;background:none"></i>Variante</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
+  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span><i style="background:#7B3F9E;height:3px;border-top:2px dashed #7B3F9E;background:none"></i>Variante</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr">© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap · <span class="ver">pr2</span></span></div>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
@@ -324,16 +324,20 @@ function visLatLon(center,zoom){ const sz=map.getSize(), hdr=document.querySelec
   if(center===undefined){ center=map.getCenter(); zoom=map.getZoom(); } const c=map.project(center,zoom), h=sz.divideBy(2);
   const nw=map.unproject(c.subtract(h).add([0,hdr.bottom]),zoom), se=map.unproject(c.subtract(h).add([x1,y1]),zoom); return [se.lat,nw.lat,nw.lng,se.lng]; }
 // km span of A[i0..i1] whose segments touch the lat/lon box B, or null. Segments, not just points: at high zoom a straight stretch can cross the view with both ends outside
-function visSpan(A,i0,i1,B){ let lo=Infinity,hi=-Infinity,q=null,qc=0; const code=r=>(r.x<B.min.x?1:r.x>B.max.x?2:0)|(r.y<B.min.y?4:r.y>B.max.y?8:0);
-  for(let i=i0;i<=i1;i++){ const p=A[i], r=L.point(p[1],p[0]), rc=code(r);
-    if(!rc||(q&&!(qc&rc)&&(!qc||L.LineUtil.clipSegment(q,r,B,false,true)))){ const k0=q?A[i-1][3]:p[3]; if(k0<lo) lo=k0; if(p[3]>hi) hi=p[3]; }
-    q=r; qc=rc; }
+// B = [lonMin,latMin,lonMax,latMax]. Own Liang–Barsky test (Leaflet's clipSegment rounds to whole degrees and can loop forever)
+function segHits(x0,y0,x1,y1,B){ let t0=0,t1=1; const dx=x1-x0, dy=y1-y0;
+  const clip=(p,q)=>{ if(p===0) return q>=0; const r=q/p; if(p<0){ if(r>t1) return false; if(r>t0) t0=r; } else { if(r<t0) return false; if(r<t1) t1=r; } return true; };
+  return clip(-dx,x0-B[0])&&clip(dx,B[2]-x0)&&clip(-dy,y0-B[1])&&clip(dy,B[3]-y0); }
+function visSpan(A,i0,i1,B){ let lo=Infinity,hi=-Infinity,q=null,qc=0; const code=p=>(p[1]<B[0]?1:p[1]>B[2]?2:0)|(p[0]<B[1]?4:p[0]>B[3]?8:0);
+  for(let i=i0;i<=i1;i++){ const p=A[i], pc=code(p);
+    if(!pc||(q&&!(qc&pc)&&(!qc||segHits(q[1],q[0],p[1],p[0],B)))){ if(q&&q[3]<lo) lo=q[3]; if(p[3]<lo) lo=p[3]; if(p[3]>hi) hi=p[3]; }
+    q=p; qc=pc; }
   return lo===Infinity?null:[lo,hi]; }
 // The profile shows the part of the route that is on screen (whole route, or the selected variant), whatever the zoom.
 // The day only decides where the map is fitted. Toggle off (or nothing visible): the whole selected stage.
 function srange(){ return varSel?[0,varSel.km]:[0,TOTAL]; }
 function syncWin(view){ const [ra,rb]=range(), [sa,sb]=srange(); const o=win; let w={a:ra,b:rb,part:false,out:false};
-  if(OPT.follow&&map._loaded){ const V=view?visLatLon(view.center,view.zoom):visLatLon(); if(V){ const B=L.bounds([V[2],V[0]],[V[3],V[1]]); const sp=visSpan(AP(),idxAtKm(sa),idxAtKm(sb),B);
+  if(OPT.follow&&map._loaded){ const V=view?visLatLon(view.center,view.zoom):visLatLon(); if(V){ const sp=visSpan(AP(),idxAtKm(sa),idxAtKm(sb),[V[2],V[0],V[3],V[1]]);
     if(!sp) w.out=true;
     else { let [lo,hi]=sp; if(hi-lo<2){ const m=(lo+hi)/2; lo=Math.max(sa,m-1); hi=Math.min(sb,lo+2); lo=Math.max(sa,hi-2); }
       w.a=lo; w.b=hi; w.part=lo>sa||hi<sb; } } }
