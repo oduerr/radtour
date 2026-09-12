@@ -151,7 +151,7 @@ body.big .gpsdot{transform:scale(1.5)}
   <div class="strip" id="wx"></div>
   <div class="strip" id="fx"></div>
   <canvas id="prof"></canvas>
-  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span><i style="background:#7B3F9E;height:3px;border-top:2px dashed #7B3F9E;background:none"></i>Variante</span><span class="x"><i style="background:linear-gradient(90deg,#F2D16B,#F0A040,#E0524A,#9E1B1B);height:6px"></i>Steigung 3–12 %</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr"><span class="ver">pr4</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
+  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span><i style="background:#7B3F9E;height:3px;border-top:2px dashed #7B3F9E;background:none"></i>Variante</span><span class="x"><i style="background:linear-gradient(90deg,#F2D16B,#F0A040,#E0524A,#9E1B1B);height:6px"></i>Steigung 3–12 %</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr"><span class="ver">pr5</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
@@ -174,7 +174,8 @@ $('sub').textContent=`${Math.floor(TOTAL)} km · ↑ ${UP.toLocaleString('de')} 
 function idxIn(A,km){ let lo=0,hi=A.length-1; while(lo<hi){const m=(lo+hi)>>1; if(A[m][3]<km) lo=m+1; else hi=m;} return lo; }
 function idxAtKm(km){ return idxIn(AP(),km); }
 // grade in % at each point: index 5 over the 200 m around it (labels, zoomed profile), index 6 over 1 km (colouring of wide windows)
-function addGrades(A){ const g=(i,r)=>{ const k=A[i][3], j0=idxIn(A,k-r), j1=idxIn(A,k+r), dk=A[j1][3]-A[j0][3]; return dk>0?(A[j1][2]-A[j0][2])/(dk*10):0; }; for(let i=0;i<A.length;i++){ A[i][5]=g(i,0.1); A[i][6]=g(i,0.5); } }
+function eleAt(A,km){ const j=idxIn(A,km); if(j===0) return A[0][2]; const p=A[j-1], q=A[j], t=Math.min(1,Math.max(0,(km-p[3])/(q[3]-p[3]||1))); return p[2]+(q[2]-p[2])*t; }
+function addGrades(A){ const kmax=A[A.length-1][3]; const g=(k,r)=>{ const k0=Math.max(0,k-r), k1=Math.min(kmax,k+r); return k1>k0?(eleAt(A,k1)-eleAt(A,k0))/((k1-k0)*10):0; }; for(const p of A){ p[5]=g(p[3],0.1); p[6]=g(p[3],0.5); } }
 addGrades(P); for(const v of (RT.variants||[])) addGrades(v.pts);
 function fmtKm(x){return x.toFixed(1).replace('.',',')+' km';}
 function stageOf(km){ if(day){ const st=S[day-1]; if(km>=st.start_km-1e-6&&km<=st.end_km+1e-6) return st; } return S.find(s=>km<=s.end_km+1e-6)||S[ND-1]; }
@@ -362,7 +363,7 @@ function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.
   for(let e=emin;e<=emax;e+=step){ ctx.beginPath();ctx.moveTo(L0,Y(e));ctx.lineTo(W-R0,Y(e));ctx.stroke(); ctx.fillText(e,L0-4,Y(e)+4); }
   const j0=Math.max(0,i0-1), j1=Math.min(P.length-1,i1+1); ctx.save(); ctx.beginPath(); ctx.rect(L0,0,W-L0-R0,H); ctx.clip();   // one point beyond each edge, clipped: the line reaches the border
   // area below the line coloured by climb grade (descents and <3 % stay neutral); one polygon per run of equal bin
-  const GI=(b-a)>25?6:5, gbin=g=>g<3?0:g<6?1:g<9?2:g<12?3:4; for(let r0=j0;r0<j1;){ const bin=gbin(P[r0][GI]); let r1=r0; while(r1+1<j1&&gbin(P[r1+1][GI])===bin) r1++; const e=r1+1;
+  const GI=(b-a)>25?6:5, gbin=g=>g<3?0:g<6?1:g<9?2:g<12?3:4, sbin=i=>gbin((P[i][GI]+P[i+1][GI])/2); for(let r0=j0;r0<j1;){ const bin=sbin(r0); let r1=r0; while(r1+1<j1&&sbin(r1+1)===bin) r1++; const e=r1+1;
     ctx.beginPath(); ctx.moveTo(X(P[r0][3]),Y(emin)); for(let i=r0;i<=e;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(P[e][3]),Y(emin)); ctx.closePath(); ctx.fillStyle=bin?GRADECOL[bin]:C_AREA; ctx.fill(); r0=e; }
   if(j0===j1){ ctx.beginPath(); ctx.moveTo(X(P[j0][3]),Y(emin)); ctx.lineTo(X(P[j0][3]),Y(P[j0][2])); ctx.stroke(); }
   ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=j0;i<=j1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=varSel?'#7B3F9E':(MAPCOL[c]||MAPCOL.p); if(i>j0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke(); ctx.restore();
