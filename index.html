@@ -151,7 +151,7 @@ body.big .gpsdot{transform:scale(1.5)}
   <div class="strip" id="wx"></div>
   <div class="strip" id="fx"></div>
   <canvas id="prof"></canvas>
-  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span><i style="background:#7B3F9E;height:3px;border-top:2px dashed #7B3F9E;background:none"></i>Variante</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr"><span class="ver">pr2</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
+  <div class="legend"><span><i style="background:#2C3E63"></i>Asphalt</span><span><i style="background:#E08A00"></i>Schotter</span><span><i style="background:#E0242A"></i>Pfad/schieben</span><span class="x"><i class="pm camp" style="display:inline-block;vertical-align:middle;margin-right:3px;width:11px;height:10px"></i>Zeltplatz</span><span class="x"><i class="pm hut" style="display:inline-block;vertical-align:middle;margin-right:3px;width:10px;height:10px"></i>Hütte</span><span class="x"><i class="pm bed" style="display:inline-block;vertical-align:middle;margin-right:3px"></i>Bett</span><span><i style="background:#7B3F9E;height:3px;border-top:2px dashed #7B3F9E;background:none"></i>Variante</span><span class="x"><i style="background:linear-gradient(90deg,#F2D16B,#F0A040,#E0524A,#9E1B1B);height:6px"></i>Steigung 3–12 %</span><span class="x"><i class="pm biv" style="display:inline-block;vertical-align:middle;margin-right:3px;width:9px;height:9px"></i>Biwak</span><span class="attr"><span class="ver">pr4</span> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM</a> · OpenTopoMap</span></div>
 </div>
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="vendor/markercluster/leaflet.markercluster.js"></script>
@@ -160,6 +160,7 @@ body.big .gpsdot{transform:scale(1.5)}
 (function(){
 const RT=window.RT, S=RT.stages, ND=S.length, css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const MAPCOL={p:'#2C3E63',g:'#E08A00',t:'#E0242A'};          // theme-independent: the map tiles don't flip
+const GRADECOL=['','#F2D16B','#F0A040','#E0524A','#9E1B1B'];   // climb grade bins 3–6, 6–9, 9–12, >12 % under the profile line
 const $=id=>document.getElementById(id);
 let day=0, varSel=null;
 const AP=()=>varSel?varSel.pts:P;
@@ -170,7 +171,11 @@ applyOpt();
 const P=[]; for(const s of RT.track){ for(const q of s.pts){ if(!P.length||q[3]>P[P.length-1][3]) P.push([q[0],q[1],q[2],q[3],s.c]); } }
 const TOTAL=P[P.length-1][3]; const UP=S.reduce((x,s)=>x+s.up,0), DN=S.reduce((x,s)=>x+s.down,0);
 $('sub').textContent=`${Math.floor(TOTAL)} km · ↑ ${UP.toLocaleString('de')} m · ${ND} Tage`;
-function idxAtKm(km){ const A=AP(); let lo=0,hi=A.length-1; while(lo<hi){const m=(lo+hi)>>1; if(A[m][3]<km) lo=m+1; else hi=m;} return lo; }
+function idxIn(A,km){ let lo=0,hi=A.length-1; while(lo<hi){const m=(lo+hi)>>1; if(A[m][3]<km) lo=m+1; else hi=m;} return lo; }
+function idxAtKm(km){ return idxIn(AP(),km); }
+// grade in % at each point: index 5 over the 200 m around it (labels, zoomed profile), index 6 over 1 km (colouring of wide windows)
+function addGrades(A){ const g=(i,r)=>{ const k=A[i][3], j0=idxIn(A,k-r), j1=idxIn(A,k+r), dk=A[j1][3]-A[j0][3]; return dk>0?(A[j1][2]-A[j0][2])/(dk*10):0; }; for(let i=0;i<A.length;i++){ A[i][5]=g(i,0.1); A[i][6]=g(i,0.5); } }
+addGrades(P); for(const v of (RT.variants||[])) addGrades(v.pts);
 function fmtKm(x){return x.toFixed(1).replace('.',',')+' km';}
 function stageOf(km){ if(day){ const st=S[day-1]; if(km>=st.start_km-1e-6&&km<=st.end_km+1e-6) return st; } return S.find(s=>km<=s.end_km+1e-6)||S[ND-1]; }
 function nearest(lat,lon){ const A=AP(); const cl=Math.cos(lat*Math.PI/180); let best=1e18,bi=0;
@@ -356,7 +361,10 @@ function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.
   ctx.strokeStyle=C_GRID; ctx.lineWidth=1; ctx.fillStyle=C_MUTED; ctx.font=F+'px system-ui'; ctx.textAlign='right';
   for(let e=emin;e<=emax;e+=step){ ctx.beginPath();ctx.moveTo(L0,Y(e));ctx.lineTo(W-R0,Y(e));ctx.stroke(); ctx.fillText(e,L0-4,Y(e)+4); }
   const j0=Math.max(0,i0-1), j1=Math.min(P.length-1,i1+1); ctx.save(); ctx.beginPath(); ctx.rect(L0,0,W-L0-R0,H); ctx.clip();   // one point beyond each edge, clipped: the line reaches the border
-  ctx.beginPath(); ctx.moveTo(X(P[j0][3]),Y(emin)); for(let i=j0;i<=j1;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(P[j1][3]),Y(emin)); ctx.closePath(); ctx.fillStyle=C_AREA; ctx.fill();
+  // area below the line coloured by climb grade (descents and <3 % stay neutral); one polygon per run of equal bin
+  const GI=(b-a)>25?6:5, gbin=g=>g<3?0:g<6?1:g<9?2:g<12?3:4; for(let r0=j0;r0<j1;){ const bin=gbin(P[r0][GI]); let r1=r0; while(r1+1<j1&&gbin(P[r1+1][GI])===bin) r1++; const e=r1+1;
+    ctx.beginPath(); ctx.moveTo(X(P[r0][3]),Y(emin)); for(let i=r0;i<=e;i++) ctx.lineTo(X(P[i][3]),Y(P[i][2])); ctx.lineTo(X(P[e][3]),Y(emin)); ctx.closePath(); ctx.fillStyle=bin?GRADECOL[bin]:C_AREA; ctx.fill(); r0=e; }
+  if(j0===j1){ ctx.beginPath(); ctx.moveTo(X(P[j0][3]),Y(emin)); ctx.lineTo(X(P[j0][3]),Y(P[j0][2])); ctx.stroke(); }
   ctx.lineWidth=OPT.hc?3.6:2.4; let cur=null; for(let i=j0;i<=j1;i++){ const c=P[i][4]; if(c!==cur){ if(cur!==null) ctx.stroke(); ctx.beginPath(); ctx.strokeStyle=varSel?'#7B3F9E':(MAPCOL[c]||MAPCOL.p); if(i>j0) ctx.moveTo(X(P[i-1][3]),Y(P[i-1][2])); cur=c;} ctx.lineTo(X(P[i][3]),Y(P[i][2])); } ctx.stroke(); ctx.restore();
   ctx.fillStyle=C_MUTED; ctx.textAlign='center'; ctx.font=F+'px system-ui'; const kstep=(b-a)>300?100:(b-a)>120?20:(b-a)>40?10:(b-a)>15?5:(b-a)>6?2:1;
   const wlbl=win.part&&innerWidth<900?`Ausschnitt ${fmtKm(b-a)}`:''; ctx.font=`600 ${F}px "Barlow Condensed",system-ui`; const wlw=wlbl?ctx.measureText(wlbl).width:0; ctx.font=F+'px system-ui';
@@ -371,8 +379,12 @@ function drawProfile(){ syncSheet(); const dpr=window.devicePixelRatio||1, W=cv.
     if(!overview||f.ele>1300){ const lbl=`${f.n.replace('Passo ','P. ').replace('Capanne di ','')} ${f.ele}`; const tw=ctx.measureText(lbl).width; const right=x+6+tw>W-R0; const span=right?[x-6-tw,x-6]:[x+6,x+6+tw];
       const clash=y-12<T0+14&&endSpans.some(es=>span[0]<es[1]&&span[1]>es[0]); ctx.textAlign=right?'right':'left'; ctx.fillText(lbl, x+(right?-6:6), clash?y+18:y-12); } } }
   for(const pl of PL){ if(varSel||pl.k==='bed'||pl.km<a||pl.km>b||(overview&&pl.k!=='camp')) continue; const x=X(pl.km); ctx.fillStyle=pl.k==='camp'?'#2E8B57':'#8B5A2B'; ctx.beginPath(); if(pl.k==='camp'){ctx.moveTo(x,H-B0-9);ctx.lineTo(x+4,H-B0-1);ctx.lineTo(x-4,H-B0-1);ctx.closePath();} else ctx.rect(x-3,H-B0-8,6,6); ctx.fill(); }
-  if(gps&&gps.km>=a&&gps.km<=b){ const x=X(gps.km); ctx.fillStyle='#1E88E5'; ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(gps.km)][2]),5,0,7); ctx.fill(); }
-  if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=C_INK; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill(); }
+  // altitude + grade beside a dot; above by default (GPS: below), flipped at the canvas edges
+  const dotLabel=(km,col,below)=>{ const p=P[idxAtKm(km)], g=p[5]||0, x=X(km), y=Y(p[2]); const t=`${p[2]} m · ${g>=1?'↗':g<=-1?'↘':'→'} ${Math.abs(Math.round(g))} %`;
+    ctx.font=`600 ${F}px "Barlow Condensed",system-ui`; const tw=ctx.measureText(t).width, right=x+9+tw>W-R0; if(below?y+F+6>H-B0:y-F-6<0) below=!below;
+    ctx.textAlign=right?'right':'left'; const tx=x+(right?-9:9), ty=below?y+F+4:y-7; ctx.lineWidth=3; ctx.lineJoin='round'; ctx.strokeStyle=css('--bg'); ctx.strokeText(t,tx,ty); ctx.fillStyle=col; ctx.fillText(t,tx,ty); };
+  if(gps&&gps.km>=a&&gps.km<=b){ const x=X(gps.km); ctx.fillStyle='#1E88E5'; ctx.beginPath(); ctx.arc(x,Y(P[idxAtKm(gps.km)][2]),5,0,7); ctx.fill(); dotLabel(gps.km,'#1E88E5',true); }
+  if(curKm>=a&&curKm<=b){ const x=X(curKm), e=P[idxAtKm(curKm)][2]; ctx.strokeStyle=C_INK; ctx.lineWidth=1; ctx.beginPath();ctx.moveTo(x,T0);ctx.lineTo(x,H-B0);ctx.stroke(); ctx.fillStyle=C_INK; ctx.beginPath(); ctx.arc(x,Y(e),4,0,7); ctx.fill(); dotLabel(curKm,C_INK,false); }
   { const ci=$('ci'); if(ci){ const st2=endOf(curKm); ci.textContent=`▸ km ${curKm.toFixed(1)} · ${P[idxAtKm(curKm)][2]} m · noch ${fmtKm(st2.end_km-curKm)} bis ${st2.to}`; } if(!gps) updateNav(); }
   if(win.part){ ctx.strokeStyle=C_ACC; ctx.lineWidth=3; ctx.beginPath(); ctx.moveTo(L0+1.5,T0-4); ctx.lineTo(L0+1.5,H-B0+3); ctx.moveTo(W-R0-1.5,T0-4); ctx.lineTo(W-R0-1.5,H-B0+3); ctx.stroke(); }
   const wl=$('win'); if(wl) wl.textContent=win.part?`Ausschnitt ${fmtKm(b-a)}`:'';
