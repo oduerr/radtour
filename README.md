@@ -20,6 +20,7 @@ Interactive maps for multi-day bike tours: route coloured by surface, day views,
 - `tours/<slug>/route.gpx` — the planned route with elevations (komoot export or router GPX); `files/` — daily GPX / KML downloads
 - `tours/<slug>/data.js` — bundled data (`window.RT`), built by `tools/build_data_js.py` from the JSON files next to it
 - `tools/fetch_surface.py` — surface class per point from OSM (Overpass) → `osm_points.json`; `tools/build_track.py` — track segments by surface + stages
+- `tools/build_tour.sh <slug> [--fetch]` — runs the whole chain for one tour (`--fetch` also queries Overpass for surfaces and lodging)
 - `tools/fetch_places.py` → `places_raw.json` (Overpass, lodging within 3.5 km); `tools/build_places.py` → `places.json`
 - `tools/build_features.py` — passes/pushes/notes (links verified) and weather points from `tour.json`
 - `tools/build_mymaps_kml.py` — one KML for Google My Maps; `tools/coverage_shots.sh` — offline PNGs of stretches without mobile data

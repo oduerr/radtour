@@ -149,6 +149,7 @@ function strips(){ let [a,b]=range(); if(varSel){ const st=S[varSel.day-1]; a=st
   let hint=''; if(day){ const cs=PL.filter(pl=>pl.k==='camp'&&pl.km>=a-2&&pl.km<=b+2); if(!cs.length){ const nx=PL.find(pl=>pl.k==='camp'&&pl.km>b); hint=`<button data-km="${nx?nx.km:b}" class="hi" style="background:#2E8B57;color:#fff">⛺ kein Zeltplatz auf dieser Etappe${nx?' · nächster bei km '+nx.km.toFixed(0)+' ('+esc(nx.n||'Camping')+')':''}</button>`; } }
   const vh=VR.filter(v=>day&&v.day===day).map(v=>`<button data-var="${v.day}" style="background:${varSel===v?'#4B1F6E':'#7B3F9E'};color:#fff">${varSel===v?'✓ ':'⇄ '}${esc(v.n)}</button>`).join('')+(varSel?`<button data-orig="1">↩ Original Tag ${varSel.day}</button>`:'');
   fx.innerHTML='<span class="lbl">Punkte</span>'+hint+vh+fl.map(f=>`<button data-km="${f.km}">${f.k==='push'?'⚠ ':f.k==='pass'?'▲ ':'ⓘ '}${esc(f.n)}</button>`).join('');
+  fx.style.display=(hint||vh||fl.length)?'':'none';   // nothing to show on this day: no empty row
   fx.querySelectorAll('button[data-var]').forEach(bt=>bt.onclick=()=>{ const v=VR.find(x=>x.day===+bt.dataset.var); if(v) varSel===v?selectDay(v.day):selectVariant(v); });
   fx.querySelectorAll('button[data-orig]').forEach(bt=>bt.onclick=()=>selectDay(varSel.day));
   fx.querySelectorAll('button[data-km]').forEach(bt=>bt.onclick=()=>{ const km=+bt.dataset.km; const m=featMarkers[km]; if(m){ map.setView(m.getLatLng(),Math.max(map.getZoom(),13)); m.openPopup(); } else { const p=AP()[idxAtKm(km)]; map.setView([p[0],p[1]],12); } setCursor(km,false); }); }
