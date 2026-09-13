@@ -1,11 +1,11 @@
 [
 {
-"km": 32.9,
+"km": 31.7,
 "k": "note",
 "n": "Meran",
 "ele": 309,
-"lat": 46.67013,
-"lon": 11.15805,
+"lat": 46.66177,
+"lon": 11.1596,
 "txt": "Ende Etsch-Radweg, ab hier Vinschgau-Radweg (Töll-Rampe ~2 km bis 10 %, dann sanft steigend, meist Asphalt, teils feiner Schotter).",
 "links": [
 {
@@ -15,23 +15,23 @@
 ]
 },
 {
-"km": 92.1,
+"km": 90.2,
 "k": "note",
 "n": "Mals",
 "ele": 1024,
-"lat": 46.6871,
-"lon": 10.54603,
+"lat": 46.67449,
+"lon": 10.53919,
 "txt": "Ende Vinschgau-Radweg. Ab hier Anstieg zum Reschen über Burgeis – St. Valentin auf der Haide (Radweg abseits der SS 40), ~500 hm.",
 "links": []
 },
 {
-"km": 112.2,
+"km": 112.0,
 "k": "pass",
 "n": "Reschenpass",
 "ele": 1507,
-"lat": 46.83368,
-"lon": 10.50958,
-"txt": "Reschensee mit dem versunkenen Kirchturm von Graun (km ~108). Passhöhe unspektakulär, Radweg am See entlang. Abfahrt nach Nauders und über die Kajetansbrücke ins Inntal (Via Claudia Augusta, Radweg).",
+"lat": 46.83858,
+"lon": 10.50621,
+"txt": "Reschensee mit dem versunkenen Kirchturm von Graun. Passhöhe unspektakulär, Radweg am See entlang. Abfahrt nach Nauders, dann auf der Alten Straße und kurz auf der B 180 durch die Finstermünz-Schlucht zur Kajetansbrücke (steil, Galerien, Verkehr – Licht an).",
 "links": [
 {
 "l": "quäldich",
@@ -44,7 +44,7 @@
 ]
 },
 {
-"km": 139.8,
+"km": 132.1,
 "k": "note",
 "n": "Pfunds",
 "ele": 972,
@@ -54,23 +54,23 @@
 "links": []
 },
 {
-"km": 170.0,
+"km": 162.0,
 "k": "note",
 "n": "Landeck",
 "ele": 790,
-"lat": 47.13904,
-"lon": 10.56626,
+"lat": 47.13871,
+"lon": 10.56473,
 "txt": "Landeck – Imst – Nassereith auf der Via Claudia (Radweg/Nebenstraßen am Inn und Gurgltal). Bahn Landeck → Bregenz ~2 h als Rückfallebene.",
 "links": []
 },
 {
-"km": 219.1,
+"km": 204.8,
 "k": "push",
 "n": "Fernpass (Via Claudia Augusta)",
-"ele": 1268,
-"lat": 47.35217,
-"lon": 10.84702,
-"txt": "Der Radweg meidet die B 179: ab Nassereith Schotterweg (alte Römerstraße) über den Fernpass, höchster Punkt ~1 270 m oberhalb der Passstraße; ein kurzes steiles Stück zum Schieben, nur ~3 km auf der B 179. Abfahrt über Fernsteinsee – Biberwier – Lermoos.",
+"ele": 1227,
+"lat": 47.36418,
+"lon": 10.83902,
+"txt": "Der Radweg meidet die B 179: ab Nassereith Schotter auf der alten Römerstraße (Römerweg AV601/E4) über den Fernpass, höchster Punkt ~1 230 m; ein kurzes steiles Stück zum Schieben, nur wenige hundert Meter B 179. Abfahrt über Fernsteinsee – Biberwier – Lermoos.",
 "links": [
 {
 "l": "quäldich",
@@ -83,13 +83,13 @@
 ]
 },
 {
-"km": 255.2,
+"km": 237.1,
 "k": "note",
 "n": "Reutte",
 "ele": 853,
-"lat": 47.48625,
-"lon": 10.71918,
-"txt": "Reutte – Vils – Füssen – Pfronten – Oy-Mittelberg: Lechtal-Radweg und Allgäuer Nebenstraßen, zum Schluss ~150 hm nach Oy. Bahn Reutte → Kempten → Lindau/Konstanz ~4 h.",
+"lat": 47.48359,
+"lon": 10.71911,
+"txt": "Reutte – Vils – Pfronten – Oy-Mittelberg durchs Vilstal auf Nebenstraßen und Radwegen, zum Schluss ~150 hm nach Oy. Bahn Reutte → Kempten → Lindau/Konstanz ~4 h.",
 "links": []
 }
 ]

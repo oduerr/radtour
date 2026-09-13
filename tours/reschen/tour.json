@@ -5,29 +5,207 @@
  "dates": "Di 15. – Fr 18. September 2026 · Rückweg über Reschenpass und Fernpass",
  "from": "Bozen",
  "order": 2,
- "note": "Route: Etsch-Radweg Bozen–Meran, Vinschgau-Radweg bis Mals, Reschenpass, Via Claudia Augusta am Inn bis Landeck, Fernpass auf dem Via-Claudia-Radweg (Schotter, kurzes Schiebestück), Reutte – Füssen – Oy-Mittelberg. Höhenmeter aus dem Track (5-m-Schwelle).",
+ "note": "Komoot-Route von Oliver (13. Sept). Etsch-Radweg Bozen–Meran, Vinschgau-Radweg bis Mals, Reschenpass, Alte Straße/B 180 hinunter ins Inntal, Via Claudia Augusta am Inn bis Landeck, Fernpass auf dem Römerweg (Schotter, kurzes Schiebestück), Lermoos – Reutte – Vils – Pfronten – Oy-Mittelberg. Höhenmeter aus dem Track (5-m-Schwelle); Komoot nennt 2 710 m.",
  "gpx": "route.gpx",
  "ch": false,
  "stages": [
-  {"day": 1, "to": "Mals", "end_km": 92.1},
-  {"day": 2, "to": "Landeck", "end_km": 170.0},
-  {"day": 3, "to": "Reutte", "end_km": 255.2},
-  {"day": 4, "to": "Oy-Mittelberg", "end_km": null}
+  {
+   "day": 1,
+   "to": "Mals",
+   "end_km": 90.2
+  },
+  {
+   "day": 2,
+   "to": "Landeck",
+   "end_km": 162.0
+  },
+  {
+   "day": 3,
+   "to": "Reutte",
+   "end_km": 237.1
+  },
+  {
+   "day": 4,
+   "to": "Oy-Mittelberg",
+   "end_km": null
+  }
  ],
  "features": [
-  {"km": 32.9, "k": "note", "n": "Meran", "ele": 309, "txt": "Ende Etsch-Radweg, ab hier Vinschgau-Radweg (Töll-Rampe ~2 km bis 10 %, dann sanft steigend, meist Asphalt, teils feiner Schotter).", "links": [{"l": "Etsch-/Vinschgau-Radweg (Wikipedia)", "u": "https://de.wikipedia.org/wiki/Etschradweg"}]},
-  {"km": 92.1, "k": "note", "n": "Mals", "ele": 1024, "txt": "Ende Vinschgau-Radweg. Ab hier Anstieg zum Reschen über Burgeis – St. Valentin auf der Haide (Radweg abseits der SS 40), ~500 hm.", "links": []},
-  {"km": 112.2, "k": "pass", "n": "Reschenpass", "ele": 1507, "txt": "Reschensee mit dem versunkenen Kirchturm von Graun (km ~108). Passhöhe unspektakulär, Radweg am See entlang. Abfahrt nach Nauders und über die Kajetansbrücke ins Inntal (Via Claudia Augusta, Radweg).", "links": [{"l": "quäldich", "u": "https://www.quaeldich.de/paesse/reschenpass/"}, {"l": "Via Claudia Augusta", "u": "https://www.viaclaudia.org/"}]},
-  {"km": 139.8, "k": "note", "n": "Pfunds", "ele": 972, "txt": "Inn-Radweg (Via Claudia Augusta) Nauders – Pfunds – Prutz – Landeck: fast eben, ~200 hm auf 50 km, autofrei bis auf kurze Stücke.", "links": []},
-  {"km": 170.0, "k": "note", "n": "Landeck", "ele": 790, "txt": "Landeck – Imst – Nassereith auf der Via Claudia (Radweg/Nebenstraßen am Inn und Gurgltal). Bahn Landeck → Bregenz ~2 h als Rückfallebene.", "links": []},
-  {"km": 219.1, "k": "push", "n": "Fernpass (Via Claudia Augusta)", "ele": 1268, "txt": "Der Radweg meidet die B 179: ab Nassereith Schotterweg (alte Römerstraße) über den Fernpass, höchster Punkt ~1 270 m oberhalb der Passstraße; ein kurzes steiles Stück zum Schieben, nur ~3 km auf der B 179. Abfahrt über Fernsteinsee – Biberwier – Lermoos.", "links": [{"l": "quäldich", "u": "https://www.quaeldich.de/paesse/fernpass/"}, {"l": "Via Claudia Augusta", "u": "https://www.viaclaudia.org/"}]},
-  {"km": 255.2, "k": "note", "n": "Reutte", "ele": 853, "txt": "Reutte – Vils – Füssen – Pfronten – Oy-Mittelberg: Lechtal-Radweg und Allgäuer Nebenstraßen, zum Schluss ~150 hm nach Oy. Bahn Reutte → Kempten → Lindau/Konstanz ~4 h.", "links": []}
+  {
+   "km": 31.7,
+   "k": "note",
+   "n": "Meran",
+   "ele": 309,
+   "txt": "Ende Etsch-Radweg, ab hier Vinschgau-Radweg (Töll-Rampe ~2 km bis 10 %, dann sanft steigend, meist Asphalt, teils feiner Schotter).",
+   "links": [
+    {
+     "l": "Etsch-/Vinschgau-Radweg (Wikipedia)",
+     "u": "https://de.wikipedia.org/wiki/Etschradweg"
+    }
+   ]
+  },
+  {
+   "km": 90.2,
+   "k": "note",
+   "n": "Mals",
+   "ele": 1024,
+   "txt": "Ende Vinschgau-Radweg. Ab hier Anstieg zum Reschen über Burgeis – St. Valentin auf der Haide (Radweg abseits der SS 40), ~500 hm.",
+   "links": []
+  },
+  {
+   "km": 112.0,
+   "k": "pass",
+   "n": "Reschenpass",
+   "ele": 1507,
+   "txt": "Reschensee mit dem versunkenen Kirchturm von Graun. Passhöhe unspektakulär, Radweg am See entlang. Abfahrt nach Nauders, dann auf der Alten Straße und kurz auf der B 180 durch die Finstermünz-Schlucht zur Kajetansbrücke (steil, Galerien, Verkehr – Licht an).",
+   "links": [
+    {
+     "l": "quäldich",
+     "u": "https://www.quaeldich.de/paesse/reschenpass/"
+    },
+    {
+     "l": "Via Claudia Augusta",
+     "u": "https://www.viaclaudia.org/"
+    }
+   ]
+  },
+  {
+   "km": 132.1,
+   "k": "note",
+   "n": "Pfunds",
+   "ele": 972,
+   "txt": "Inn-Radweg (Via Claudia Augusta) Nauders – Pfunds – Prutz – Landeck: fast eben, ~200 hm auf 50 km, autofrei bis auf kurze Stücke.",
+   "links": []
+  },
+  {
+   "km": 162.0,
+   "k": "note",
+   "n": "Landeck",
+   "ele": 790,
+   "txt": "Landeck – Imst – Nassereith auf der Via Claudia (Radweg/Nebenstraßen am Inn und Gurgltal). Bahn Landeck → Bregenz ~2 h als Rückfallebene.",
+   "links": []
+  },
+  {
+   "km": 204.8,
+   "k": "push",
+   "n": "Fernpass (Via Claudia Augusta)",
+   "ele": 1227,
+   "txt": "Der Radweg meidet die B 179: ab Nassereith Schotter auf der alten Römerstraße (Römerweg AV601/E4) über den Fernpass, höchster Punkt ~1 230 m; ein kurzes steiles Stück zum Schieben, nur wenige hundert Meter B 179. Abfahrt über Fernsteinsee – Biberwier – Lermoos.",
+   "links": [
+    {
+     "l": "quäldich",
+     "u": "https://www.quaeldich.de/paesse/fernpass/"
+    },
+    {
+     "l": "Via Claudia Augusta",
+     "u": "https://www.viaclaudia.org/"
+    }
+   ]
+  },
+  {
+   "km": 237.1,
+   "k": "note",
+   "n": "Reutte",
+   "ele": 853,
+   "txt": "Reutte – Vils – Pfronten – Oy-Mittelberg durchs Vilstal auf Nebenstraßen und Radwegen, zum Schluss ~150 hm nach Oy. Bahn Reutte → Kempten → Lindau/Konstanz ~4 h.",
+   "links": []
+  }
  ],
  "weather": [
-  {"km": 0, "n": "Bozen", "h": 0}, {"km": 32.9, "n": "Meran", "h": 0}, {"km": 48.8, "n": "Naturns", "h": 0}, {"km": 68.4, "n": "Schlanders", "h": 0},
-  {"km": 92.1, "n": "Mals", "h": 0}, {"km": 112.2, "n": "Reschenpass", "h": 1}, {"km": 119.0, "n": "Nauders", "h": 0}, {"km": 139.8, "n": "Pfunds", "h": 0},
-  {"km": 157.6, "n": "Prutz", "h": 0}, {"km": 170.0, "n": "Landeck", "h": 0}, {"km": 192.6, "n": "Imst", "h": 0}, {"km": 207.5, "n": "Nassereith", "h": 0},
-  {"km": 219.1, "n": "Fernpass", "h": 1}, {"km": 231.0, "n": "Lermoos", "h": 0}, {"km": 245.2, "n": "Heiterwang", "h": 0}, {"km": 255.2, "n": "Reutte", "h": 0},
-  {"km": 270.9, "n": "Füssen", "h": 0}, {"km": 284.9, "n": "Pfronten", "h": 0}, {"km": 297.3, "n": "Oy-Mittelberg", "h": 0}
+  {
+   "km": 0,
+   "n": "Bozen",
+   "h": 0
+  },
+  {
+   "km": 31.7,
+   "n": "Meran",
+   "h": 0
+  },
+  {
+   "km": 48.0,
+   "n": "Naturns",
+   "h": 0
+  },
+  {
+   "km": 67.6,
+   "n": "Schlanders",
+   "h": 0
+  },
+  {
+   "km": 90.2,
+   "n": "Mals",
+   "h": 0
+  },
+  {
+   "km": 112.0,
+   "n": "Reschenpass",
+   "h": 1
+  },
+  {
+   "km": 118.5,
+   "n": "Nauders",
+   "h": 0
+  },
+  {
+   "km": 132.1,
+   "n": "Pfunds",
+   "h": 0
+  },
+  {
+   "km": 149.5,
+   "n": "Prutz",
+   "h": 0
+  },
+  {
+   "km": 162.0,
+   "n": "Landeck",
+   "h": 0
+  },
+  {
+   "km": 183.7,
+   "n": "Imst",
+   "h": 0
+  },
+  {
+   "km": 197.4,
+   "n": "Nassereith",
+   "h": 0
+  },
+  {
+   "km": 204.8,
+   "n": "Fernpass",
+   "h": 1
+  },
+  {
+   "km": 217.6,
+   "n": "Lermoos",
+   "h": 0
+  },
+  {
+   "km": 230.1,
+   "n": "Heiterwang",
+   "h": 0
+  },
+  {
+   "km": 237.1,
+   "n": "Reutte",
+   "h": 0
+  },
+  {
+   "km": 250.1,
+   "n": "Vils",
+   "h": 0
+  },
+  {
+   "km": 257.8,
+   "n": "Pfronten",
+   "h": 0
+  },
+  {
+   "km": 272.7,
+   "n": "Oy-Mittelberg",
+   "h": 0
+  }
  ]
 }
