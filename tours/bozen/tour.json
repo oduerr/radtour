@@ -4,6 +4,8 @@
  "short": "BZ→OY",
  "dates": "September 2026 · Rückweg, Option 1 Brenner – Fernpass",
  "from": "Bozen",
+ "order": 2,
+ "note": "Höhenmeter aus dem Track (5-m-Schwelle); die Rückweg-Seite nennt den Router-Wert 3 509 m.",
  "gpx": "route.gpx",
  "ch": false,
  "stages": [

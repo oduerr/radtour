@@ -4,6 +4,7 @@
  "short": "KN→GE",
  "dates": "September 2026",
  "from": "Konstanz",
+ "order": 1,
  "gpx": "route.gpx",
  "ch": true,
  "mymaps": "Google-MyMaps-Konstanz-Genua.kml",

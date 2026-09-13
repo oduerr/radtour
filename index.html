@@ -23,6 +23,7 @@ h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:26px;font-weigh
 .tour{display:block;background:var(--panel);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;margin:0 0 10px;text-decoration:none;color:var(--ink);box-shadow:0 2px 10px rgba(0,0,0,.08)}
 .tour b{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:22px;font-weight:700;display:block}
 .tour span{color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.tour .note{display:block;font-size:12px;margin-top:4px}
 .tour .go{float:right;background:var(--accent);color:#fff;border-radius:999px;padding:3px 12px;font:600 14px "Barlow Condensed",system-ui,sans-serif;margin-top:2px}
 .more{margin-top:18px;font-size:13px;color:var(--muted)} .more a{color:var(--accent)}
 .files{display:block;margin:-6px 0 14px 14px;font-size:13px;color:var(--accent)}
@@ -37,7 +38,7 @@ h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:26px;font-weigh
 <script>
 const L=document.getElementById('list');
 for(const t of (window.TOURS||[])){ const a=document.createElement('a'); a.className='tour'; a.href=t.slug+'/';
-  a.innerHTML=`<span class="go">Karte</span><b>${t.name}</b><span>${t.dates?t.dates+' · ':''}${t.days} Tage · ${t.km.toLocaleString('de')} km · ↑ ${t.up.toLocaleString('de')} m</span>`; L.appendChild(a);
+  a.innerHTML=`<span class="go">Karte</span><b>${t.name}</b><span>${t.dates?t.dates+' · ':''}${t.days} Tage · ${t.km.toLocaleString('de')} km · ↑ ${t.up.toLocaleString('de')} m</span>${t.note?`<span class="note">${t.note}</span>`:''}`; L.appendChild(a);
   const f=document.createElement('a'); f.className='files'; f.href='tours/'+t.slug+'/files/'; f.textContent='GPX-Dateien'; L.appendChild(f); }
 if(!L.children.length) L.textContent='Noch keine Tour gebaut (python3 tools/build_pages.py).';
 </script>

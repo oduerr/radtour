@@ -2,10 +2,10 @@
 import json, os, html
 ROOT=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..')); TD=os.path.join(ROOT,'tours')
 idx=[]
-for slug in sorted(os.listdir(TD)):
-    tj=os.path.join(TD,slug,'tour.json')
-    if not os.path.isfile(tj): continue
-    T=json.load(open(tj)); st=json.load(open(os.path.join(TD,slug,'stages.json'))) if os.path.exists(os.path.join(TD,slug,'stages.json')) else []
+slugs=[d for d in os.listdir(TD) if os.path.isfile(os.path.join(TD,d,'tour.json'))]
+tours=sorted(((json.load(open(os.path.join(TD,d,'tour.json'))),d) for d in slugs), key=lambda x:(x[0].get('order',99),x[1]))   # tour.json "order": 1 = the tour being ridden, first on the start page
+for T,slug in tours:
+    st=json.load(open(os.path.join(TD,slug,'stages.json'))) if os.path.exists(os.path.join(TD,slug,'stages.json')) else []
     name=T['name']; short=T.get('short',name); d=os.path.join(ROOT,slug); os.makedirs(d,exist_ok=True)
     page=f"""<!doctype html>
 <html lang="de">
@@ -45,6 +45,6 @@ for slug in sorted(os.listdir(TD)):
         open(fi,'w').write(f'<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(name)} – Dateien</title><style>body{{font-family:system-ui,sans-serif;margin:24px;max-width:640px;line-height:1.5}}li{{margin:8px 0}}a{{font-weight:600}}small{{color:#666;margin-left:6px}}</style><h1>{html.escape(name)} – Dateien</h1><p>Etappen als GPX zum Herunterladen.</p><ul>{items}</ul><p><a href="../../../{slug}/">← zur Karte</a></p></html>')
         print(f"  {slug}/files/index.html generated")
     km=round(sum(s['km'] for s in st),1); up=sum(s['up'] for s in st)
-    idx.append({'slug':slug,'name':name,'short':short,'dates':T.get('dates',''),'from':T.get('from',''),'to':st[-1]['to'] if st else '','days':len(st),'km':km,'up':up})
+    idx.append({'slug':slug,'name':name,'short':short,'dates':T.get('dates',''),'note':T.get('note',''),'from':T.get('from',''),'to':st[-1]['to'] if st else '','days':len(st),'km':km,'up':up})
     print(f"{slug}: {name} · {len(st)} days · {km} km · ↑ {up} m -> {slug}/index.html")
 open(os.path.join(TD,'index.js'),'w').write("window.TOURS="+json.dumps(idx,ensure_ascii=False,separators=(',',':'))+";\n")
