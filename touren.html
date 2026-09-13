@@ -1,0 +1,37 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Radtouren – alle Touren</title>
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+<style>body{margin:0;font-family:system-ui,sans-serif;background:#F2F3EF;color:#1F2328}#map{height:62vh;min-height:380px}
+.wrap{padding:12px 14px;max-width:1080px;margin:0 auto}h1{font-size:20px;margin:6px 0 2px}.sub{color:#646A72;font-size:13px;margin:0 0 10px}
+table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:6px 8px;border-bottom:1px solid #D4D7D0;text-align:left;vertical-align:top}th{font-size:12px;color:#646A72;text-transform:uppercase}
+.sw{display:inline-block;width:22px;height:5px;border-radius:2px;vertical-align:middle;margin-right:6px}td.n{text-align:right;white-space:nowrap}tr.t:hover{background:#E9EBE5;cursor:pointer}
+tr.sel{background:#E3ECE7}a{color:#1D6E8C}.leaflet-popup-content{font-size:13px;line-height:1.35}.chips{margin:6px 0 10px}.chip{display:inline-block;border:1px solid #C9CCC4;border-radius:14px;padding:2px 10px;margin:2px 4px 2px 0;font-size:13px;background:#fff;cursor:pointer}
+.chip.on{background:#1F2328;color:#fff;border-color:#1F2328}.det{font-size:13px;color:#646A72}
+@media(max-width:600px){td.hide,th.hide{display:none}}</style></head><body>
+<div id="map"></div><div class="wrap"><h1>Radtouren – alle Touren</h1><p class="sub" id="sub"></p>
+<div class="chips" id="chips"></div>
+<table><thead><tr><th></th><th>Tour</th><th class="hide">Region</th><th class="n">Days</th><th class="n">km</th><th class="n">↑ m</th><th class="n hide">max m</th></tr></thead><tbody id="tb"></tbody></table>
+<p class="sub" style="margin-top:12px">Numbers from the recorded tracks (device distance and ascent). Tap a row or a line for the stages; Taiwan via its chip. <a href="./">← Konstanz → Genova map</a></p></div>
+<script src="vendor/leaflet/leaflet.js"></script><script src="data/touren.js"></script>
+<script>
+const map=L.map('map',{worldCopyJump:true}); L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:15,attribution:'© OpenStreetMap, SRTM · © OpenTopoMap'}).addTo(map);
+const fmt=n=>n==null?'?':String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
+const layers={}, bounds={}; const tb=document.getElementById('tb'); const chips=document.getElementById('chips');
+let totKm=0,totUp=0,totD=0;
+for(const o of TOUREN){ const g=L.featureGroup(); const b=L.latLngBounds([]);
+  for(const s of o.segs){ const ll=s.pts; ll.forEach(p=>b.extend(p));
+    L.polyline(ll,{color:'#fff',weight:8,opacity:.7,interactive:false}).addTo(g);
+    const pl=L.polyline(ll,{color:o.c,weight:4,dashArray:o.dash?'8 7':null}).addTo(g);
+    pl.bindPopup(`<b>${o.n}</b><br>${s.d?s.d+' · ':''}${s.n}<br>${fmt(s.km)} km · ↑ ${fmt(s.up)} m${s.file?`<br><a href="files/touren/${o.k}/${s.file.replace('gpx/','')}" download>GPX</a>`:''}<br><span style="color:#646A72">Tour: ${fmt(o.km)} km · ↑ ${fmt(o.up)} m · ${o.days} days</span><br><a href="obsidian://open?vault=root&file=${encodeURIComponent('09_private/Radtouren/'+o.note)}">Note in Obsidian</a>`); }
+  g.addTo(map); layers[o.k]=g; bounds[o.k]=b; if(!o.dash){totKm+=o.km;totUp+=o.up;totD+=o.days||0;}
+  const stages=o.segs.filter(s=>s.d).map(s=>`${s.d.slice(5)} ${s.n} <span class="det">${fmt(s.km)} km · ↑ ${fmt(s.up)}</span>`).join('<br>');
+  tb.insertAdjacentHTML('beforeend',`<tr class="t" data-k="${o.k}"><td><span class="sw" style="background:${o.c}"></span></td><td><b>${o.n}</b><br><span class="det">${o.start} – ${o.end} · ${o.bikes} · with ${o.with}</span><div class="det st" hidden style="margin-top:4px">${stages}<br><a href="obsidian://open?vault=root&file=${encodeURIComponent('09_private/Radtouren/'+o.note)}">Note</a></div></td><td class="hide">${o.region}</td><td class="n">${o.days??'?'}</td><td class="n">${fmt(o.km)}</td><td class="n">${fmt(o.up)}</td><td class="n hide">${fmt(o.hi)}</td></tr>`);
+  chips.insertAdjacentHTML('beforeend',`<span class="chip" data-k="${o.k}" style="border-left:6px solid ${o.c}">${o.start.slice(0,4)} ${o.n.replace(/ \d{4}.*$/,'')}</span>`); }
+document.getElementById('sub').textContent=`${TOUREN.filter(o=>!o.dash).length} recorded tours · ${fmt(totKm)} km · ↑ ${fmt(totUp)} m · ${totD} days · plus the current trip (dashed)`;
+function focus(k){ document.querySelectorAll('tr.t,.chip').forEach(e=>e.classList.toggle('sel',e.dataset.k===k)); document.querySelectorAll('.chip').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
+  document.querySelectorAll('tr.t .st').forEach(e=>e.hidden=e.closest('tr').dataset.k!==k);
+  if(k&&bounds[k]&&bounds[k].isValid()) map.fitBounds(bounds[k],{padding:[30,30]}); else all(); history.replaceState(null,'',k?'#'+k:location.pathname); }
+function all(){ const b=L.latLngBounds([]); for(const k in bounds) if(bounds[k].getCenter().lng<30) b.extend(bounds[k]); if(!b.isValid()) for(const k in bounds) b.extend(bounds[k]); map.fitBounds(b,{padding:[20,20]}); }
+document.querySelectorAll('tr.t,.chip').forEach(e=>e.addEventListener('click',()=>focus(e.dataset.k===document.querySelector('.chip.on')?.dataset.k?null:e.dataset.k)));
+for(const k in layers) layers[k].on('click',()=>{ document.querySelectorAll('tr.t,.chip').forEach(e=>e.classList.toggle('sel',e.dataset.k===k)); document.querySelectorAll('.chip').forEach(e=>e.classList.toggle('on',e.dataset.k===k)); document.querySelectorAll('tr.t .st').forEach(e=>e.hidden=e.closest('tr').dataset.k!==k); });
+const h=location.hash.slice(1); if(h&&layers[h]) focus(h); else all();
+</script></body></html>
