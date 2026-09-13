@@ -1,0 +1,54 @@
+[
+ {
+  "day": 1,
+  "from": "Bozen",
+  "to": "Sterzing",
+  "start_km": 0.0,
+  "end_km": 76.0,
+  "km": 76.0,
+  "up": 967,
+  "down": 286,
+  "lat": 46.89589,
+  "lon": 11.43122,
+  "ele": 946
+ },
+ {
+  "day": 2,
+  "from": "Sterzing",
+  "to": "Innsbruck",
+  "start_km": 76.0,
+  "end_km": 130.6,
+  "km": 54.6,
+  "up": 800,
+  "down": 1165,
+  "lat": 47.26398,
+  "lon": 11.39484,
+  "ele": 577
+ },
+ {
+  "day": 3,
+  "from": "Innsbruck",
+  "to": "Reutte",
+  "start_km": 130.6,
+  "end_km": 233.7,
+  "km": 103.1,
+  "up": 1595,
+  "down": 1319,
+  "lat": 47.48599,
+  "lon": 10.71841,
+  "ele": 853
+ },
+ {
+  "day": 4,
+  "from": "Reutte",
+  "to": "Oy-Mittelberg",
+  "start_km": 233.7,
+  "end_km": 275.7,
+  "km": 42.0,
+  "up": 369,
+  "down": 242,
+  "lat": 47.6426,
+  "lon": 10.44316,
+  "ele": 984
+ }
+]
