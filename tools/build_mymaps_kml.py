@@ -1,6 +1,6 @@
 """One KML for Google My Maps: 10 day lines (simplified, coloured) + campsites, huts, stage ends, passes. Stays under My Maps limits (≤2000 rows, 5 MB)."""
 import json, os, html, numpy as np
-HERE=os.path.dirname(os.path.abspath(__file__)); D=os.path.join(HERE,'..','data'); OUT=os.path.join(HERE,'..','files','Google-MyMaps-Konstanz-Genua.kml')
+import tourlib; T=tourlib.tour(); D=T['_dir']; OUT=os.path.join(T['_files'],T.get('mymaps',f"Google-MyMaps-{T['slug']}.kml"))
 t=np.load(os.path.join(D,'track.npy')); KM=t[:,3]/1000; N=len(t)
 S=json.load(open(os.path.join(D,'stages.json'))); PL=json.load(open(os.path.join(D,'places.json'))); FE=json.load(open(os.path.join(D,'features.json')))
 def rdp(pts,eps):
@@ -12,7 +12,7 @@ def rdp(pts,eps):
     return [pts[0],pts[-1]]
 COL=['ff2C3E63','ffE08A00','ffE0242A','ff2E8B57','ff8B5A2B','ff1D6E8C','ff7B3F9E','ff008B8B','ffB8860B','ff333333']  # aabbggrr for KML
 esc=lambda x:html.escape(str(x),quote=True)
-k=['<?xml version="1.0" encoding="UTF-8"?>','<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Konstanz → Genova 2026</name>']
+k=['<?xml version="1.0" encoding="UTF-8"?>','<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>'+html.escape(T['name'])+'</name>']
 for i,c in enumerate(COL): k.append(f'<Style id="d{i+1}"><LineStyle><color>{c}</color><width>4</width></LineStyle></Style>')
 for nm,ic in [('camp','http://maps.google.com/mapfiles/kml/paddle/grn-blank.png'),('hut','http://maps.google.com/mapfiles/kml/paddle/orange-blank.png'),('end','http://maps.google.com/mapfiles/kml/paddle/blu-stars.png'),('pass','http://maps.google.com/mapfiles/kml/shapes/triangle.png'),('push','http://maps.google.com/mapfiles/kml/paddle/red-diamond.png'),('note','http://maps.google.com/mapfiles/kml/paddle/ltblu-circle.png')]:
     k.append(f'<Style id="{nm}"><IconStyle><Icon><href>{ic}</href></Icon></IconStyle></Style>')

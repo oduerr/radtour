@@ -1,6 +1,6 @@
-"""Query OSM (Overpass) for lodging and campsites near the route -> data/places_raw.json"""
+"""Query OSM (Overpass) for lodging and campsites near the route -> tours/<slug>/places_raw.json"""
 import numpy as np, json, urllib.request, urllib.parse, time, math, os
-HERE=os.path.dirname(os.path.abspath(__file__)); D=os.path.join(HERE,'..','data')
+import tourlib; T=tourlib.tour(); D=T['_dir']
 t=np.load(os.path.join(D,'track.npy')); KM=t[:,3]/1000; N=len(t)
 idx=[0]; last=0
 for i in range(N):

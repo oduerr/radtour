@@ -1,4 +1,5 @@
-data/track.npy
-data/places_raw.json
 tools/*.log
 .DS_Store
+__pycache__/
+tours/*/track.npy
+tours/*/places_raw.json

@@ -1,0 +1,467 @@
+{
+ "slug": "genova",
+ "name": "Konstanz → Genova",
+ "short": "KN→GE",
+ "dates": "September 2026",
+ "from": "Konstanz",
+ "order": 1,
+ "gpx": "route.gpx",
+ "ch": true,
+ "mymaps": "Google-MyMaps-Konstanz-Genua.kml",
+ "stages": [
+  {
+   "day": 1,
+   "to": "Wildhaus",
+   "end_km": 83.4
+  },
+  {
+   "day": 2,
+   "to": "Bonaduz / Rhäzüns",
+   "end_km": 153.0
+  },
+  {
+   "day": 3,
+   "to": "Disentis",
+   "end_km": 208.0
+  },
+  {
+   "day": 4,
+   "to": "Lago Ritom",
+   "end_km": 240.7
+  },
+  {
+   "day": 5,
+   "to": "Formazza (Ponte)",
+   "end_km": 285.3
+  },
+  {
+   "day": 6,
+   "to": "Lago d'Orta (Pescone)",
+   "end_km": 369.5
+  },
+  {
+   "day": 7,
+   "to": "Ghislarengo",
+   "end_km": 441.7
+  },
+  {
+   "day": 8,
+   "to": "Asti",
+   "end_km": 533.5
+  },
+  {
+   "day": 9,
+   "to": "Silvano d'Orba",
+   "end_km": 597.5
+  },
+  {
+   "day": 10,
+   "to": "Genova",
+   "end_km": null
+  }
+ ],
+ "features": [
+  {
+   "km": 83.8,
+   "k": "pass",
+   "n": "Wildhaus-Sattel",
+   "ele": 1038,
+   "txt": "Höchster Punkt des Toggenburgs, dann Abfahrt ins Rheintal.",
+   "links": []
+  },
+  {
+   "km": 144.4,
+   "k": "pass",
+   "n": "Kunkelspass",
+   "ele": 1357,
+   "txt": "Alte Römer-Säumerroute, autofrei. Vättis-Seite asphaltiert, ~4 km Schotter über den Pass; die Tamins-Seite (Abfahrt) 5,9 km mit 12 % Schnitt, Rampen bis 20 %.",
+   "links": [
+    {
+     "l": "quäldich",
+     "u": "https://www.quaeldich.de/paesse/kunkelspass/"
+    },
+    {
+     "l": "climbfinder",
+     "u": "https://climbfinder.com/de/anstiege/kunkelspass"
+    },
+    {
+     "l": "bikesophy",
+     "u": "https://www.bikesophy.com/gravel/gravelbike-tour-ueber-den-kunkelspass"
+    },
+    {
+     "l": "Gravel Zürich",
+     "u": "https://gravelzuerich.wordpress.com/2021/01/25/vom-taminatal-ins-rheintal/"
+    }
+   ]
+  },
+  {
+   "km": 223.7,
+   "k": "pass",
+   "n": "Lukmanierpass",
+   "ele": 1915,
+   "txt": "Asphalt-Passstrasse, mässiger Verkehr. Hospezi Santa Maria direkt am Pass (km 225,6).",
+   "links": [
+    {
+     "l": "quäldich",
+     "u": "https://www.quaeldich.de/paesse/lukmanierpass/"
+    },
+    {
+     "l": "passzwang",
+     "u": "https://www.passzwang.net/de/lukmanier.php"
+    }
+   ]
+  },
+  {
+   "km": 227.5,
+   "k": "push",
+   "n": "Schieben 1 · Beginn",
+   "ele": 1929,
+   "txt": "Track wird Pfad: 1,9 km, +278 m, Ø 15 %, steilste 200 m 18 %. OSM: smoothness very_horrible, mtb:scale 2. Bachbett-artig, praktisch alle schieben.",
+   "links": []
+  },
+  {
+   "km": 231.4,
+   "k": "pass",
+   "n": "Passo dell'Uomo",
+   "ele": 2218,
+   "txt": "Autofrei. Danach 9 km Naturstrasse durchs Val Piora zum Lago Ritom – fahrbar, aber grob.",
+   "links": [
+    {
+     "l": "hikr.org",
+     "u": "https://www.hikr.org/dir/Passo_dell_Uomo_7353/mtb/"
+    },
+    {
+     "l": "trail.ch",
+     "u": "https://www.trail.ch/tour/ritomsee/ritomsee.htm"
+    },
+    {
+     "l": "mountainbiker.ch",
+     "u": "https://mountainbiker.ch/touren/passo-dell-uomo-passo-del-sole"
+    }
+   ]
+  },
+  {
+   "km": 240.0,
+   "k": "note",
+   "n": "Lago Ritom",
+   "ele": 1811,
+   "txt": "Rifugio Lago Ritom (220 m abseits). Abfahrt zur Staumauer und nach Piotta auf schmaler Asphaltstrasse.",
+   "links": []
+  },
+  {
+   "km": 265.5,
+   "k": "push",
+   "n": "Schieben 2 · Beginn",
+   "ele": 1923,
+   "txt": "Abzweig von der Nufenenstrasse auf den Bergweg (weiss-rot-weiss): 3,3 km, +374 m, steilste 200 m 26 %, dann langes flaches Gipfelplateau. Teils sac_scale mountain_hiking (T2).",
+   "links": []
+  },
+  {
+   "km": 268.8,
+   "k": "pass",
+   "n": "Passo San Giacomo",
+   "ele": 2313,
+   "txt": "Höchster Punkt der Tour. Grenze CH/IT, alte Finanzkaserne. Ab hier die alte ENEL-Staudammstrasse: 9 km Schotterkehren am Lago Toggia vorbei nach Riale.",
+   "links": [
+    {
+     "l": "quäldich",
+     "u": "https://www.quaeldich.de/paesse/passo-san-giacomo/"
+    },
+    {
+     "l": "hikr.org",
+     "u": "https://www.hikr.org/dir/Passo_San_Giacomo_6930/"
+    },
+    {
+     "l": "itinerarium",
+     "u": "https://www.itinerarium.it/escursioni/31/passo-san-giacomo"
+    },
+    {
+     "l": "tourispo",
+     "u": "https://www.tourispo.com/biketrack/over-the-passo-san-giacomo.html"
+    }
+   ]
+  },
+  {
+   "km": 272.5,
+   "k": "note",
+   "n": "Rifugio Maria Luisa",
+   "ele": 2157,
+   "txt": "2 160 m am Lago Toggia. Juni–September, mittwochs geschlossen. +39 0324 63086.",
+   "links": [
+    {
+     "l": "Rifugio",
+     "u": "https://www.rifugiomarialuisa.it/"
+    }
+   ]
+  },
+  {
+   "km": 441.7,
+   "k": "note",
+   "n": "Ghislarengo · Reisebene",
+   "ele": 149,
+   "txt": "Einziges Hotel in 61 km (2,3 km abseits). Alternative: 12 km nach Vercelli. Kein Zeltplatz, kein Wald – hier nicht wild campen.",
+   "links": []
+  },
+  {
+   "km": 616.8,
+   "k": "pass",
+   "n": "Capanne di Marcarolo",
+   "ele": 709,
+   "txt": "9 km Schotteranstieg durch den Naturpark (260 → 709 m). Zelt zählt im Park nur oberhalb 900 m als Biwak – die Route bleibt darunter, also durchfahren.",
+   "links": [
+    {
+     "l": "Parco",
+     "u": "https://www.areeprotetteappenninopiemontese.it/2011/03/08/domande-frequenti/"
+    }
+   ]
+  },
+  {
+   "km": 635.5,
+   "k": "pass",
+   "n": "Passo del Turchino",
+   "ele": 542,
+   "txt": "SS 456, Hauptstrasse mit Tunnel am Scheitel; die Autobahn nimmt den meisten Verkehr.",
+   "links": [
+    {
+     "l": "quäldich",
+     "u": "https://www.quaeldich.de/paesse/passo-del-turchino/"
+    }
+   ]
+  },
+  {
+   "km": 652.0,
+   "k": "note",
+   "n": "Genova Voltri",
+   "ele": 18,
+   "txt": "Die letzten 15 km Aurelia sind Stadtverkehr. Regionalzug Voltri → Genova Piazza Principe, 20 min, Fahrrad erlaubt.",
+   "links": []
+  }
+ ],
+ "weather": [
+  {
+   "km": 0,
+   "n": "Konstanz",
+   "h": 0
+  },
+  {
+   "km": 31,
+   "n": "Wil",
+   "h": 0
+  },
+  {
+   "km": 62,
+   "n": "Ebnat-Kappel",
+   "h": 0
+  },
+  {
+   "km": 83.8,
+   "n": "Wildhaus-Sattel",
+   "h": 1
+  },
+  {
+   "km": 97,
+   "n": "Gams / Rheintal",
+   "h": 0
+  },
+  {
+   "km": 120.6,
+   "n": "Bad Ragaz",
+   "h": 0
+  },
+  {
+   "km": 137,
+   "n": "Vättis",
+   "h": 0
+  },
+  {
+   "km": 144.4,
+   "n": "Kunkelspass",
+   "h": 1
+  },
+  {
+   "km": 153,
+   "n": "Bonaduz",
+   "h": 0
+  },
+  {
+   "km": 166,
+   "n": "Versam",
+   "h": 0
+  },
+  {
+   "km": 174.3,
+   "n": "Ilanz",
+   "h": 0
+  },
+  {
+   "km": 194,
+   "n": "Trun",
+   "h": 0
+  },
+  {
+   "km": 208,
+   "n": "Disentis",
+   "h": 0
+  },
+  {
+   "km": 211.5,
+   "n": "Curaglia",
+   "h": 0
+  },
+  {
+   "km": 223.7,
+   "n": "Lukmanierpass",
+   "h": 1
+  },
+  {
+   "km": 231.4,
+   "n": "Passo dell'Uomo",
+   "h": 1
+  },
+  {
+   "km": 240,
+   "n": "Lago Ritom",
+   "h": 0
+  },
+  {
+   "km": 249.9,
+   "n": "Airolo",
+   "h": 0
+  },
+  {
+   "km": 262,
+   "n": "All'Acqua",
+   "h": 0
+  },
+  {
+   "km": 268.8,
+   "n": "Passo San Giacomo",
+   "h": 1
+  },
+  {
+   "km": 277.9,
+   "n": "Riale",
+   "h": 0
+  },
+  {
+   "km": 285,
+   "n": "Formazza",
+   "h": 0
+  },
+  {
+   "km": 300,
+   "n": "Baceno / Premia",
+   "h": 0
+  },
+  {
+   "km": 324,
+   "n": "Domodossola",
+   "h": 0
+  },
+  {
+   "km": 358.7,
+   "n": "Mergozzo",
+   "h": 0
+  },
+  {
+   "km": 369.4,
+   "n": "Omegna",
+   "h": 0
+  },
+  {
+   "km": 380,
+   "n": "Lago d'Orta Ostufer",
+   "h": 0
+  },
+  {
+   "km": 388,
+   "n": "Gozzano",
+   "h": 0
+  },
+  {
+   "km": 406,
+   "n": "Romagnano Sesia",
+   "h": 0
+  },
+  {
+   "km": 425,
+   "n": "Reisebene",
+   "h": 0
+  },
+  {
+   "km": 441.7,
+   "n": "Ghislarengo",
+   "h": 0
+  },
+  {
+   "km": 457,
+   "n": "Santhià",
+   "h": 0
+  },
+  {
+   "km": 481,
+   "n": "Crescentino",
+   "h": 0
+  },
+  {
+   "km": 492,
+   "n": "Monferrato Brozolo",
+   "h": 1
+  },
+  {
+   "km": 510,
+   "n": "Cortazzone",
+   "h": 0
+  },
+  {
+   "km": 533.5,
+   "n": "Asti",
+   "h": 0
+  },
+  {
+   "km": 555,
+   "n": "Felizzano",
+   "h": 0
+  },
+  {
+   "km": 570,
+   "n": "Castellazzo Bormida",
+   "h": 0
+  },
+  {
+   "km": 590,
+   "n": "Predosa",
+   "h": 0
+  },
+  {
+   "km": 597.5,
+   "n": "Silvano d'Orba",
+   "h": 0
+  },
+  {
+   "km": 616.8,
+   "n": "Capanne di Marcarolo",
+   "h": 1
+  },
+  {
+   "km": 627,
+   "n": "Campo Ligure",
+   "h": 0
+  },
+  {
+   "km": 635.5,
+   "n": "Passo del Turchino",
+   "h": 1
+  },
+  {
+   "km": 652,
+   "n": "Voltri",
+   "h": 0
+  },
+  {
+   "km": 667.5,
+   "n": "Genova",
+   "h": 0
+  }
+ ]
+}
