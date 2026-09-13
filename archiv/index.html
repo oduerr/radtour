@@ -9,6 +9,9 @@ table{border-collapse:collapse;width:100%;font-size:14px}td,th{padding:6px 8px;b
 .sw{display:inline-block;width:22px;height:5px;border-radius:2px;vertical-align:middle;margin-right:6px}td.n{text-align:right;white-space:nowrap}tr.t:hover{background:var(--chip);cursor:pointer}
 tr.sel{background:var(--sel)}a{color:var(--accent)}.leaflet-popup-content{font-size:13px;line-height:1.35}.chips{margin:6px 0 10px}.chip{display:inline-block;border:0;border-radius:999px;padding:4px 12px;margin:2px 4px 2px 0;font:600 14px "Barlow Condensed",system-ui,sans-serif;background:var(--chip);color:var(--ink);cursor:pointer}
 .chip.on{background:var(--accent);color:#fff}.det{font-size:13px;color:var(--muted)}
+.dn{width:22px;height:22px;border-radius:50%;color:#fff;font:700 12px/18px "Barlow Condensed",system-ui,sans-serif;text-align:center;border:2px solid #fff;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.45)}
+.dn2{display:inline-block;min-width:18px;height:18px;border-radius:9px;color:#fff;font:700 11px/18px "Barlow Condensed",system-ui,sans-serif;text-align:center;margin-right:6px;padding:0 4px}
+.stg{padding:2px 4px;margin:1px -4px;border-radius:6px;cursor:pointer}.stg:hover{background:var(--chip)}.stg.on{background:var(--sel);outline:1px solid var(--accent)}
 @media(max-width:600px){td.hide,th.hide{display:none}}</style></head><body>
 <div id="map"></div><div class="wrap"><h1>Bisherige Touren</h1><p class="sub" id="sub"></p>
 <div class="chips" id="chips"></div>
@@ -18,23 +21,38 @@ tr.sel{background:var(--sel)}a{color:var(--accent)}.leaflet-popup-content{font-s
 <script>
 const map=L.map('map',{worldCopyJump:true}); L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png',{maxZoom:15,attribution:'© OpenStreetMap, SRTM · © OpenTopoMap'}).addTo(map);
 const fmt=n=>n==null?'?':String(n).replace(/\B(?=(\d{3})+(?!\d))/g,' ');
-const layers={}, bounds={}; const tb=document.getElementById('tb'); const chips=document.getElementById('chips');
+const shade=(hex,f)=>{const n=parseInt(hex.slice(1),16);const c=[n>>16,n>>8&255,n&255].map(v=>Math.round(v+(255-v)*f));return '#'+c.map(v=>v.toString(16).padStart(2,'0')).join('')};
+const noteUrl=o=>`obsidian://open?vault=root&file=${encodeURIComponent('09_private/Radtouren/'+o.note)}`;
+const dayNo=(o,d)=>d?Math.round((new Date(d)-new Date(o.start))/864e5)+1:null;
+const layers={}, bounds={}, stageLines={}; const ends=L.layerGroup(); const ENDZOOM=8;
+const tb=document.getElementById('tb'); const chips=document.getElementById('chips');
 let totKm=0,totUp=0,totD=0;
-for(const o of TOUREN){ const g=L.featureGroup(); const b=L.latLngBounds([]);
-  for(const s of o.segs){ const ll=s.pts; ll.forEach(p=>b.extend(p));
+for(const o of TOUREN){ const g=L.featureGroup(); const b=L.latLngBounds([]); stageLines[o.k]=[];
+  const days=[...new Set(o.segs.map(s=>s.d))]; const lastOfDay={}; o.segs.forEach((s,i)=>lastOfDay[s.d]=i);
+  o.segs.forEach((s,i)=>{ const ll=s.pts; ll.forEach(p=>b.extend(p)); const di=days.indexOf(s.d); const col=o.dash?o.c:(di%2?shade(o.c,.42):o.c); const dn=dayNo(o,s.d);
     L.polyline(ll,{color:'#fff',weight:8,opacity:.7,interactive:false}).addTo(g);
-    const pl=L.polyline(ll,{color:o.c,weight:4,dashArray:o.dash?'8 7':null}).addTo(g);
-    pl.bindPopup(`<b>${o.n}</b><br>${s.d?s.d+' · ':''}${s.n}<br>${fmt(s.km)} km · ↑ ${fmt(s.up)} m<br><span style="color:#646A72">Tour: ${fmt(o.km)} km · ↑ ${fmt(o.up)} m · ${o.days} days</span><br><a href="obsidian://open?vault=root&file=${encodeURIComponent('09_private/Radtouren/'+o.note)}">Note in Obsidian</a>`); }
+    const pl=L.polyline(ll,{color:col,weight:4,dashArray:o.dash?'8 7':null}).addTo(g);
+    const html=`<b>${o.n}</b><br>${dn?'Day '+dn+' · ':''}${s.d?s.d+' · ':''}${s.n}<br>${fmt(s.km)} km · ↑ ${fmt(s.up)} m<br><span style="color:var(--muted)">Tour: ${fmt(o.km)} km · ↑ ${fmt(o.up)} m · ${o.days} days</span><br><a href="${noteUrl(o)}">Note in Obsidian</a>`;
+    pl.bindPopup(html); pl.on('click',()=>selectStage(o.k,i,false)); stageLines[o.k].push(pl);
+    if(s.d && lastOfDay[s.d]===i){ const e=ll[ll.length-1];
+      const m=L.marker(e,{icon:L.divIcon({className:'',html:`<div class="dn" style="background:${o.c}">${dn}</div>`,iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:500,title:`Day ${dn}: ${s.n}`});
+      m.bindPopup(html); m.on('click',()=>selectStage(o.k,i,false)); ends.addLayer(m); } });
   g.addTo(map); layers[o.k]=g; bounds[o.k]=b; if(!o.dash){totKm+=o.km;totUp+=o.up;totD+=o.days||0;}
-  const stages=o.segs.filter(s=>s.d).map(s=>`${s.d.slice(5)} ${s.n} <span class="det">${fmt(s.km)} km · ↑ ${fmt(s.up)}</span>`).join('<br>');
-  tb.insertAdjacentHTML('beforeend',`<tr class="t" data-k="${o.k}"><td><span class="sw" style="background:${o.c}"></span></td><td><b>${o.n}</b><br><span class="det">${o.start} – ${o.end} · ${o.bikes} · with ${o.with}</span><div class="det st" hidden style="margin-top:4px">${stages}<br><a href="obsidian://open?vault=root&file=${encodeURIComponent('09_private/Radtouren/'+o.note)}">Note</a></div></td><td class="hide">${o.region}</td><td class="n">${o.days??'?'}</td><td class="n">${fmt(o.km)}</td><td class="n">${fmt(o.up)}</td><td class="n hide">${fmt(o.hi)}</td></tr>`);
+  const stages=o.segs.map((s,i)=>s.d?`<div class="stg" data-k="${o.k}" data-i="${i}"><span class="dn2" style="background:${(days.indexOf(s.d)%2)?shade(o.c,.42):o.c}">${dayNo(o,s.d)}</span>${s.d.slice(5)} ${s.n} <span class="det">${fmt(s.km)} km · ↑ ${fmt(s.up)}</span></div>`:'').join('');
+  tb.insertAdjacentHTML('beforeend',`<tr class="t" data-k="${o.k}"><td><span class="sw" style="background:${o.c}"></span></td><td><b>${o.n}</b><br><span class="det">${o.start} – ${o.end} · ${o.bikes} · with ${o.with}</span><div class="det st" hidden style="margin-top:4px">${stages}<a href="${noteUrl(o)}">Note</a></div></td><td class="hide">${o.region}</td><td class="n">${o.days??'?'}</td><td class="n">${fmt(o.km)}</td><td class="n">${fmt(o.up)}</td><td class="n hide">${fmt(o.hi)}</td></tr>`);
   chips.insertAdjacentHTML('beforeend',`<span class="chip" data-k="${o.k}" style="border-left:6px solid ${o.c}">${o.start.slice(0,4)} ${o.n.replace(/ \d{4}.*$/,'')}</span>`); }
-document.getElementById('sub').textContent=`${TOUREN.filter(o=>!o.dash).length} recorded tours · ${fmt(totKm)} km · ↑ ${fmt(totUp)} m · ${totD} days · plus the current trip (dashed)`;
-function focus(k){ document.querySelectorAll('tr.t,.chip').forEach(e=>e.classList.toggle('sel',e.dataset.k===k)); document.querySelectorAll('.chip').forEach(e=>e.classList.toggle('on',e.dataset.k===k));
-  document.querySelectorAll('tr.t .st').forEach(e=>e.hidden=e.closest('tr').dataset.k!==k);
-  if(k&&bounds[k]&&bounds[k].isValid()) map.fitBounds(bounds[k],{padding:[30,30]}); else all(); history.replaceState(null,'',k?'#'+k:location.pathname); }
+document.getElementById('sub').textContent=`${TOUREN.filter(o=>!o.dash).length} recorded tours · ${fmt(totKm)} km · ↑ ${fmt(totUp)} m · ${totD} days · plus the current trip (dashed) · stages alternate light/dark, numbers = day`;
+function mark(k){ document.querySelectorAll('tr.t,.chip').forEach(e=>e.classList.toggle('sel',e.dataset.k===k)); document.querySelectorAll('.chip').forEach(e=>e.classList.toggle('on',e.dataset.k===k)); document.querySelectorAll('tr.t .st').forEach(e=>e.hidden=e.closest('tr').dataset.k!==k); }
+function focus(k){ mark(k); resetStage(); if(k&&bounds[k]&&bounds[k].isValid()) map.fitBounds(bounds[k],{padding:[30,30]}); else all(); history.replaceState(null,'',k?'#'+k:location.pathname); }
 function all(){ const b=L.latLngBounds([]); for(const k in bounds) if(bounds[k].getCenter().lng<30) b.extend(bounds[k]); if(!b.isValid()) for(const k in bounds) b.extend(bounds[k]); map.fitBounds(b,{padding:[20,20]}); }
+let hl=null;
+function resetStage(){ if(hl){ hl.setStyle({weight:4}); hl=null; } document.querySelectorAll('.stg.on').forEach(e=>e.classList.remove('on')); }
+function selectStage(k,i,zoom){ resetStage(); mark(k); const pl=stageLines[k][i]; hl=pl; pl.setStyle({weight:7}); pl.bringToFront();
+  document.querySelectorAll(`.stg[data-k="${k}"][data-i="${i}"]`).forEach(e=>e.classList.add('on'));
+  if(zoom){ map.fitBounds(pl.getBounds(),{padding:[40,40]}); pl.openPopup(); } }
 document.querySelectorAll('tr.t,.chip').forEach(e=>e.addEventListener('click',()=>focus(e.dataset.k===document.querySelector('.chip.on')?.dataset.k?null:e.dataset.k)));
-for(const k in layers) layers[k].on('click',()=>{ document.querySelectorAll('tr.t,.chip').forEach(e=>e.classList.toggle('sel',e.dataset.k===k)); document.querySelectorAll('.chip').forEach(e=>e.classList.toggle('on',e.dataset.k===k)); document.querySelectorAll('tr.t .st').forEach(e=>e.hidden=e.closest('tr').dataset.k!==k); });
-const h=location.hash.slice(1); if(h&&layers[h]) focus(h); else all();
+document.querySelectorAll('.stg').forEach(e=>e.addEventListener('click',ev=>{ ev.stopPropagation(); selectStage(e.dataset.k,+e.dataset.i,true); }));
+function zoomEnds(){ const on=map.getZoom()>=ENDZOOM; if(on&&!map.hasLayer(ends)) ends.addTo(map); if(!on&&map.hasLayer(ends)) map.removeLayer(ends); }
+map.on('zoomend',zoomEnds);
+const h=location.hash.slice(1); if(h&&layers[h]) focus(h); else all(); zoomEnds();
 </script></body></html>
