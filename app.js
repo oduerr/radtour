@@ -21,7 +21,7 @@ const TEMPLATE=`<div id="map"></div>
 </div>`;
 (function(){
 document.body.insertAdjacentHTML('afterbegin',TEMPLATE);
-const RT=window.RT, TOUR=RT.tour||{slug:'genova',name:'',ch:true,files:'files/'}, S=RT.stages, ND=S.length, css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+const RT=window.RT, TOUR=RT.tour||{slug:'tour',name:document.title,ch:false,files:''}, S=RT.stages, ND=S.length, css=n=>getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 const MAPCOL={p:'#2C3E63',g:'#E08A00',t:'#E0242A'};          // theme-independent: the map tiles don't flip
 const GRADECOL=['','#F2D16B','#F0A040','#E0524A','#9E1B1B'];   // climb grade bins 3–6, 6–9, 9–12, >12 % under the profile line
 const $=id=>document.getElementById(id);

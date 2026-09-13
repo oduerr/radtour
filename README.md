@@ -25,7 +25,7 @@ Interactive maps for multi-day bike tours: route coloured by surface, day views,
 - `tools/build_features.py` — passes/pushes/notes (links verified) and weather points from `tour.json`
 - `tools/build_mymaps_kml.py` — one KML for Google My Maps; `tools/coverage_shots.sh` — offline PNGs of stretches without mobile data
 - `tools/shot.html` — iframe harness for true phone-width screenshots
-- `rueckweg.html`, `rueckweg-bozen.html`, `touren.html` — separate pages (return options, tour archive)
+- `rueckweg.html`, `rueckweg-bozen.html` — separate pages (return options)
 
 ## New tour
 ```

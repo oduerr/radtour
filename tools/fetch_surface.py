@@ -50,6 +50,7 @@ for wid,w in ways.items():
     g=w['geometry']
     for j in range(len(g)-1):
         segs.append((g[j]['lon']*kx,g[j]['lat']*ky,g[j+1]['lon']*kx,g[j+1]['lat']*ky)); owner.append(wid)
+if not ways: sys.exit('no ways fetched (Overpass unreachable?) - osm_points.json left untouched')
 S=np.array(segs) if segs else np.zeros((0,4)); owner=np.array(owner)
 print("segments:",len(S))
 # 3. nearest segment per point (vectorised over segments within a coarse box)
@@ -70,5 +71,6 @@ for i in range(N):
     prev=best; tg=ways[best]['tags'] if best is not None else {}
     out.append({'km':round(float(KM[i]),3),'ele':int(round(a[i,2])),'cls':cls(tg) if best is not None else 'paved','hw':tg.get('highway'),'sf':tg.get('surface'),'tt':tg.get('tracktype'),
                 'sac':tg.get('sac_scale'),'mtb':tg.get('mtb:scale'),'name':tg.get('name'),'bic':tg.get('bicycle'),'sm':tg.get('smoothness'),'wid':int(best) if best is not None else None})
+if miss>N*0.2: sys.exit(f'{miss} of {N} points without a way nearby - osm_points.json left untouched (partial Overpass result?)')
 json.dump(out,open(os.path.join(D,'osm_points.json'),'w'),ensure_ascii=False)
 import collections; print("osm_points.json:",N,"points, unmatched (carried from previous):",miss,"| classes",dict(collections.Counter(o['cls'] for o in out)))

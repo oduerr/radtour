@@ -38,6 +38,12 @@ for slug in sorted(os.listdir(TD)):
     man={"name":name,"short_name":short,"start_url":".","scope":".","display":"standalone","background_color":"#F2F3EF","theme_color":"#1D6E8C",
          "icons":[{"src":"../icon.svg","sizes":"any","type":"image/svg+xml","purpose":"any"},{"src":"../icon-180.png","sizes":"180x180","type":"image/png"},{"src":"../icon-512.png","sizes":"512x512","type":"image/png","purpose":"any maskable"}]}
     json.dump(man,open(os.path.join(d,'manifest.json'),'w'),ensure_ascii=False)
+    # downloads page: generated unless a hand-written tours/<slug>/files/index.html exists
+    fd=os.path.join(TD,slug,'files'); fi=os.path.join(fd,'index.html')
+    if os.path.isdir(fd) and not os.path.exists(fi):
+        items=''.join(f'<li><a href="{html.escape(f)}" download>{html.escape(f)}</a> <small>{os.path.getsize(os.path.join(fd,f))//1024} KB</small></li>' for f in sorted(os.listdir(fd)) if f.lower().endswith(('.gpx','.kml')))
+        open(fi,'w').write(f'<!doctype html><html lang="de"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>{html.escape(name)} – Dateien</title><style>body{{font-family:system-ui,sans-serif;margin:24px;max-width:640px;line-height:1.5}}li{{margin:8px 0}}a{{font-weight:600}}small{{color:#666;margin-left:6px}}</style><h1>{html.escape(name)} – Dateien</h1><p>Etappen als GPX zum Herunterladen.</p><ul>{items}</ul><p><a href="../../../{slug}/">← zur Karte</a></p></html>')
+        print(f"  {slug}/files/index.html generated")
     km=round(sum(s['km'] for s in st),1); up=sum(s['up'] for s in st)
     idx.append({'slug':slug,'name':name,'short':short,'dates':T.get('dates',''),'from':T.get('from',''),'to':st[-1]['to'] if st else '','days':len(st),'km':km,'up':up})
     print(f"{slug}: {name} · {len(st)} days · {km} km · ↑ {up} m -> {slug}/index.html")
