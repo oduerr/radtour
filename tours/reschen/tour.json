@@ -5,7 +5,7 @@
  "dates": "Di 15. – Fr 18. September 2026 · Rückweg über Reschenpass und Fernpass",
  "from": "Bozen",
  "order": 2,
- "note": "Komoot-Route von Oliver (13. Sept). Etsch-Radweg Bozen–Meran, Vinschgau-Radweg bis Mals, Reschenpass, Alte Straße/B 180 hinunter ins Inntal, Via Claudia Augusta am Inn bis Landeck, Fernpass auf dem Römerweg (Schotter, kurzes Schiebestück), Lermoos – Reutte – Vils – Pfronten – Oy-Mittelberg. Höhenmeter aus dem Track (5-m-Schwelle); Komoot nennt 2 710 m.",
+ "note": "Komoot-Route von Oliver (13. Sept). Etsch-Radweg Bozen–Meran, Vinschgau-Radweg bis Mals, Reschenpass, Via Claudia Augusta hinunter ins Inntal (nur 2,8 km B 180), Via Claudia Augusta am Inn bis Landeck, Fernpass auf dem Römerweg (Schotter, kurzes Schiebestück), Lermoos – Reutte – Vils – Pfronten – Oy-Mittelberg. Höhenmeter aus dem Track (5-m-Schwelle); Komoot nennt 2 710 m.",
  "gpx": "route.gpx",
  "ch": false,
  "stages": [
@@ -57,7 +57,7 @@
    "k": "pass",
    "n": "Reschenpass",
    "ele": 1507,
-   "txt": "Reschensee mit dem versunkenen Kirchturm von Graun. Passhöhe unspektakulär, Radweg am See entlang. Abfahrt nach Nauders, dann auf der Alten Straße und kurz auf der B 180 durch die Finstermünz-Schlucht zur Kajetansbrücke (steil, Galerien, Verkehr – Licht an).",
+   "txt": "Reschensee mit dem versunkenen Kirchturm von Graun. Passhöhe unspektakulär, Radweg am See entlang. Abfahrt nach Nauders und weiter auf der Via Claudia Augusta: Alte Straße, Schotterweg, dann 2,8 km auf der B 180 bis Hochfinstermünz (Licht an), danach Radweg-Abstieg auf Schotter nach Altfinstermünz und Inn-Radweg (Asphalt) nach Pfunds.",
    "links": [
     {
      "l": "quäldich",
