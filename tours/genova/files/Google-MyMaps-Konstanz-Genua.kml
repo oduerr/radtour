@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Konstanz → Genova 2026</name>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><name>Konstanz → Genova</name>
 <Style id="d1"><LineStyle><color>ff2C3E63</color><width>4</width></LineStyle></Style>
 <Style id="d2"><LineStyle><color>ffE08A00</color><width>4</width></LineStyle></Style>
 <Style id="d3"><LineStyle><color>ffE0242A</color><width>4</width></LineStyle></Style>

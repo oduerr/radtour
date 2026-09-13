@@ -2,7 +2,7 @@
 import sys, os, json
 ROOT=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..'))
 def tour(argv=None):
-    a=(argv if argv is not None else sys.argv)[1:]
+    a=[x for x in (argv if argv is not None else sys.argv)[1:] if not x.startswith('--')]
     if not a or not os.path.isdir(os.path.join(ROOT,'tours',a[0])):
         avail=sorted(d for d in os.listdir(os.path.join(ROOT,'tours')) if os.path.isfile(os.path.join(ROOT,'tours',d,'tour.json')))
         sys.exit(f"usage: {os.path.basename(sys.argv[0])} <tour-slug>   (available: {', '.join(avail)})")
