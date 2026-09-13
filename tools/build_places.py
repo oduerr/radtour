@@ -1,6 +1,6 @@
-"""data/places_raw.json -> data/places.json (filtered + typed for the map)."""
+"""tours/<slug>/places_raw.json -> tours/<slug>/places.json (filtered + typed for the map)."""
 import json, os, collections, re
-HERE=os.path.dirname(os.path.abspath(__file__)); D=os.path.join(HERE,'..','data')
+import tourlib; T=tourlib.tour(); D=T['_dir']
 raw=json.load(open(os.path.join(D,'places_raw.json'))); st=json.load(open(os.path.join(D,'stages.json')))
 ends=[s['end_km'] for s in st]
 first=lambda v:(v or '').split(';')[0].strip()

@@ -1,0 +1,33 @@
+{
+ "slug": "bozen",
+ "name": "Bozen → Oy-Mittelberg",
+ "short": "BZ→OY",
+ "dates": "September 2026 · Rückweg, Option 1 Brenner – Fernpass",
+ "from": "Bozen",
+ "gpx": "route.gpx",
+ "ch": false,
+ "stages": [
+  {
+   "day": 1,
+   "to": "Sterzing",
+   "end_km": 76.0
+  },
+  {
+   "day": 2,
+   "to": "Innsbruck",
+   "end_km": 130.6
+  },
+  {
+   "day": 3,
+   "to": "Reutte",
+   "end_km": 233.7
+  },
+  {
+   "day": 4,
+   "to": "Oy-Mittelberg",
+   "end_km": null
+  }
+ ],
+ "features": [],
+ "weather": []
+}
