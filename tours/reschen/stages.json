@@ -1,0 +1,54 @@
+[
+ {
+  "day": 1,
+  "from": "Bozen",
+  "to": "Mals",
+  "start_km": 0.0,
+  "end_km": 92.1,
+  "km": 92.1,
+  "up": 843,
+  "down": 86,
+  "lat": 46.6871,
+  "lon": 10.54603,
+  "ele": 1025
+ },
+ {
+  "day": 2,
+  "from": "Mals",
+  "to": "Landeck",
+  "start_km": 92.1,
+  "end_km": 170.0,
+  "km": 77.9,
+  "up": 870,
+  "down": 1103,
+  "lat": 47.13904,
+  "lon": 10.56626,
+  "ele": 790
+ },
+ {
+  "day": 3,
+  "from": "Landeck",
+  "to": "Reutte",
+  "start_km": 170.0,
+  "end_km": 255.2,
+  "km": 85.2,
+  "up": 1231,
+  "down": 1168,
+  "lat": 47.48625,
+  "lon": 10.71918,
+  "ele": 853
+ },
+ {
+  "day": 4,
+  "from": "Reutte",
+  "to": "Oy-Mittelberg",
+  "start_km": 255.2,
+  "end_km": 297.3,
+  "km": 42.1,
+  "up": 369,
+  "down": 242,
+  "lat": 47.6426,
+  "lon": 10.44316,
+  "ele": 984
+ }
+]

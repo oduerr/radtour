@@ -1,0 +1,95 @@
+[
+{
+"km": 32.9,
+"k": "note",
+"n": "Meran",
+"ele": 309,
+"lat": 46.67013,
+"lon": 11.15805,
+"txt": "Ende Etsch-Radweg, ab hier Vinschgau-Radweg (Töll-Rampe ~2 km bis 10 %, dann sanft steigend, meist Asphalt, teils feiner Schotter).",
+"links": [
+{
+"l": "Etsch-/Vinschgau-Radweg (Wikipedia)",
+"u": "https://de.wikipedia.org/wiki/Etschradweg"
+}
+]
+},
+{
+"km": 92.1,
+"k": "note",
+"n": "Mals",
+"ele": 1024,
+"lat": 46.6871,
+"lon": 10.54603,
+"txt": "Ende Vinschgau-Radweg. Ab hier Anstieg zum Reschen über Burgeis – St. Valentin auf der Haide (Radweg abseits der SS 40), ~500 hm.",
+"links": []
+},
+{
+"km": 112.2,
+"k": "pass",
+"n": "Reschenpass",
+"ele": 1507,
+"lat": 46.83368,
+"lon": 10.50958,
+"txt": "Reschensee mit dem versunkenen Kirchturm von Graun (km ~108). Passhöhe unspektakulär, Radweg am See entlang. Abfahrt nach Nauders und über die Kajetansbrücke ins Inntal (Via Claudia Augusta, Radweg).",
+"links": [
+{
+"l": "quäldich",
+"u": "https://www.quaeldich.de/paesse/reschenpass/"
+},
+{
+"l": "Via Claudia Augusta",
+"u": "https://www.viaclaudia.org/"
+}
+]
+},
+{
+"km": 139.8,
+"k": "note",
+"n": "Pfunds",
+"ele": 972,
+"lat": 46.96863,
+"lon": 10.54417,
+"txt": "Inn-Radweg (Via Claudia Augusta) Nauders – Pfunds – Prutz – Landeck: fast eben, ~200 hm auf 50 km, autofrei bis auf kurze Stücke.",
+"links": []
+},
+{
+"km": 170.0,
+"k": "note",
+"n": "Landeck",
+"ele": 790,
+"lat": 47.13904,
+"lon": 10.56626,
+"txt": "Landeck – Imst – Nassereith auf der Via Claudia (Radweg/Nebenstraßen am Inn und Gurgltal). Bahn Landeck → Bregenz ~2 h als Rückfallebene.",
+"links": []
+},
+{
+"km": 219.1,
+"k": "push",
+"n": "Fernpass (Via Claudia Augusta)",
+"ele": 1268,
+"lat": 47.35217,
+"lon": 10.84702,
+"txt": "Der Radweg meidet die B 179: ab Nassereith Schotterweg (alte Römerstraße) über den Fernpass, höchster Punkt ~1 270 m oberhalb der Passstraße; ein kurzes steiles Stück zum Schieben, nur ~3 km auf der B 179. Abfahrt über Fernsteinsee – Biberwier – Lermoos.",
+"links": [
+{
+"l": "quäldich",
+"u": "https://www.quaeldich.de/paesse/fernpass/"
+},
+{
+"l": "Via Claudia Augusta",
+"u": "https://www.viaclaudia.org/"
+}
+]
+},
+{
+"km": 255.2,
+"k": "note",
+"n": "Reutte",
+"ele": 853,
+"lat": 47.48625,
+"lon": 10.71918,
+"txt": "Reutte – Vils – Füssen – Pfronten – Oy-Mittelberg: Lechtal-Radweg und Allgäuer Nebenstraßen, zum Schluss ~150 hm nach Oy. Bahn Reutte → Kempten → Lindau/Konstanz ~4 h.",
+"links": []
+}
+]
