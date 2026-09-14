@@ -41,12 +41,12 @@ for(const o of TOUREN){ const g=L.featureGroup(); const b=L.latLngBounds([]); st
     if(s.d && lastOfDay[s.d]===i){ const e=ll[ll.length-1];
       const m=L.marker(e,{icon:L.divIcon({className:'',html:`<div class="dn" style="background:${o.c}">${dn}</div>`,iconSize:[22,22],iconAnchor:[11,11]}),zIndexOffset:500,title:`Day ${dn}: ${s.n}`});
       m.bindPopup(html); m.on('click',()=>selectStage(o.k,i,false)); ends.addLayer(m); } });
-  g.addTo(map); layers[o.k]=g; bounds[o.k]=b; if(o.ev==='recorded'){totKm+=o.km;totUp+=o.up;totD+=o.days||0;}
+  g.addTo(map); layers[o.k]=g; bounds[o.k]=b; if(o.ev==='recorded'&&!o.notbike){totKm+=o.km;totUp+=o.up;totD+=o.days||0;}
   const stages=o.segs.map((s,i)=>s.d?`<div class="stg" data-k="${o.k}" data-i="${i}"><span class="dn2" style="background:${(days.indexOf(s.d)%2)?shade(o.c,.42):o.c}">${dayNo(o,s.d)}</span>${s.d.slice(5)} ${s.n} <span class="det">${ph?s.photos+' Fotos':fmt(s.km)+' km · ↑ '+fmt(s.up)}</span></div>`:'').join('');
-  const evb=o.ev==='photos'?'<span class="ev">aus Fotos rekonstruiert</span>':(o.ev==='planned'?'<span class="ev">geplant · unterwegs</span>':'');
+  const evb=(o.notbike?'<span class="ev">nicht geradelt · Reise</span> ':'')+(o.ev==='photos'?'<span class="ev">aus Fotos rekonstruiert</span>':(o.ev==='planned'?'<span class="ev">geplant · unterwegs</span>':''));
   tb.insertAdjacentHTML('beforeend',`<tr class="t" data-k="${o.k}"><td><span class="sw ${ph?'dot':''}" style="background:${o.c}"></span></td><td><b>${o.n}</b> ${evb}<br><span class="det">${o.start} – ${o.end} · ${o.bikes} · with ${o.with}</span><div class="det st" hidden style="margin-top:4px">${stages}<a href="${noteUrl(o)}">Note</a></div></td><td class="hide">${o.region}</td><td class="n">${o.days??'?'}</td><td class="n">${ph?'<span class="det">≈ '+fmt(o.straight)+' *</span>':fmt(o.km)}</td><td class="n">${ph?'<span class="det">—</span>':fmt(o.up)}</td><td class="n hide">${ph?'<span class="det">—</span>':fmt(o.hi)}</td></tr>`);
-  chips.insertAdjacentHTML('beforeend',`<span class="chip" data-k="${o.k}" style="border-left:6px solid ${o.c}">${o.start.slice(0,4)} ${o.n.replace(/ \d{4}.*$/,'')}</span>`); }
-const nRec=TOUREN.filter(o=>o.ev==='recorded').length, nPh=TOUREN.filter(o=>o.ev==='photos').length;
+  chips.insertAdjacentHTML('beforeend',`<span class="chip" data-k="${o.k}" style="border-left:6px solid ${o.c}">${o.start.slice(0,4)} ${o.n.replace(/ \d{4}\b/,'')}</span>`); }
+const nRec=TOUREN.filter(o=>o.ev==='recorded'&&!o.notbike).length, nPh=TOUREN.filter(o=>o.ev==='photos'&&!o.notbike).length;
 document.getElementById('sub').textContent=`${nRec} recorded tours · ${fmt(totKm)} km · ↑ ${fmt(totUp)} m · ${totD} days · ${nPh} tours reconstructed from photos (dotted; * = straight line between photo locations, not the ridden distance) · current trip dashed · stages alternate light/dark, numbers = day`;
 function mark(k){ document.querySelectorAll('tr.t,.chip').forEach(e=>e.classList.toggle('sel',e.dataset.k===k)); document.querySelectorAll('.chip').forEach(e=>e.classList.toggle('on',e.dataset.k===k)); document.querySelectorAll('tr.t .st').forEach(e=>e.hidden=e.closest('tr').dataset.k!==k); }
 function focus(k){ mark(k); resetStage(); if(k&&bounds[k]&&bounds[k].isValid()) map.fitBounds(bounds[k],{padding:[30,30]}); else all(); history.replaceState(null,'',k?'#'+k:location.pathname); }
