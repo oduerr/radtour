@@ -85,6 +85,7 @@ a{color:var(--accent)}
 <div class="key">
 <span><i class="sw" style="background:var(--muted)"></i> aufgezeichnet</span>
 <span><i class="sw dot" style="color:var(--muted)"></i> aus Fotos rekonstruiert (keine Route)</span>
+<span><i class="sw" style="background:#8A9099"></i> Bahn / Schiff, nicht geradelt</span>
 <span><i class="sw dash" style="color:var(--muted)"></i> geplant</span>
 <span><i class="dn2" style="background:var(--muted);min-width:17px">3</i> Etappenende, Tag 3</span>
 </div>
@@ -107,19 +108,26 @@ let sel=null, selStage=null;
 
 for(const o of TOUREN){
   const g=L.featureGroup(), b=L.latLngBounds([]), lines=[], casings=[], marks=[];
-  const ph=o.ev==='photos', days=[...new Set(o.segs.map(s=>s.d))], lastOfDay={};
+  const ph=o.ev==='photos', lm=o.ev==='landmarks', days=[...new Set(o.segs.map(s=>s.d))], lastOfDay={};
   o.segs.forEach((s,i)=>lastOfDay[s.d]=i);
   o.segs.forEach((s,i)=>{
     const ll=s.pts; ll.forEach(p=>b.extend(p));
     const col=o.dash?o.c:(days.indexOf(s.d)%2?shade(o.c,.42):o.c), dn=dayNo(o,s.d);
-    const cas=L.polyline(ll,{color:'#fff',weight:ph?6:8,opacity:.7,interactive:false}).addTo(g); casings.push(cas);
-    const pl=L.polyline(ll,{color:col,weight:ph?3:4,dashArray:o.dash?'8 7':(ph?'2 7':null),lineCap:ph?'round':'butt'}).addTo(g);
-    const nums=ph?`${s.photos} Fotos · ≈ ${fmt(s.straight)} km Luftlinie`:`${fmt(s.km)} km · ↑ ${fmt(s.up)} m`;
-    const foot=ph?'aus Fotos rekonstruiert — keine Aufzeichnung':`Tour gesamt: ${fmt(o.km)} km · ↑ ${fmt(o.up)} m · ${o.days} Tage`;
+    const tr=lm&&s.mode==='transfer', sp=lm&&s.mode==='suspected';
+    const cas=L.polyline(ll,{color:'#fff',weight:(ph||lm)?6:8,opacity:tr?0:.7,interactive:false}).addTo(g); casings.push(cas);
+    const pl=L.polyline(ll,{color:tr?'#8A9099':col,weight:(ph||lm)?3:4,
+      dashArray:o.dash?'8 7':(tr?'1 7':((ph||sp)?'2 7':(lm?'6 5':null))),
+      lineCap:(ph||lm)?'round':'butt',opacity:tr?.85:1}).addTo(g);
+    const nums=lm?`≈ ${fmt(s.straight)} km Luftlinie${tr?' · Bahn / Schiff':(sp?' · vermutet':'')}`:(ph?`${s.photos} Fotos · ≈ ${fmt(s.straight)} km Luftlinie`:`${fmt(s.km)} km · ↑ ${fmt(s.up)} m`);
+    const foot=lm?(s.fix?`${s.fix.name}${s.fix.t?' · '+s.fix.t:''}<br>${s.fix.what} <i>(${s.fix.conf})</i>`:'aus Fotos identifiziert'):(ph?'aus Fotos rekonstruiert — keine Aufzeichnung':`Tour gesamt: ${fmt(o.km)} km · ↑ ${fmt(o.up)} m · ${o.days} Tage`);
     const html=`<b>${o.n}</b><br>${dn?'Tag '+dn+' · ':''}${s.d?s.d+' · ':''}${s.n}<br>${nums}<br><span style="color:var(--muted)">${foot}</span><br><a href="${noteUrl(o)}">Notiz in Obsidian</a>`;
     pl.bindPopup(html); pl.on('click',()=>pick(o.k,i,false)); lines.push(pl);
     if(ph) ll.forEach(p=>L.circleMarker(p,{radius:2.5,color:col,fillColor:col,fillOpacity:1,weight:1,interactive:false}).addTo(g));
-    if(s.d&&lastOfDay[s.d]===i){
+    if(lm){ const e=ll[ll.length-1];
+      const mk=L.circleMarker(e,{radius:5,color:'#fff',weight:2,fillColor:o.c,fillOpacity:1}).addTo(g);
+      mk.bindPopup(html); mk.on('click',()=>pick(o.k,i,false));
+      if(i===0) L.circleMarker(ll[0],{radius:5,color:'#fff',weight:2,fillColor:o.c,fillOpacity:1}).addTo(g).bindPopup(`<b>${o.n}</b><br>Start: ${s.n.split(' → ')[0]}`); }
+    if(s.d&&lastOfDay[s.d]===i&&!lm){
       const m=L.marker(ll[ll.length-1],{icon:L.divIcon({className:'',html:`<div class="dn" style="background:${o.c}">${dn}</div>`,iconSize:[21,21],iconAnchor:[10,10]}),zIndexOffset:500,title:`Tag ${dn}: ${s.n}`});
       m.bindPopup(html); m.on('click',()=>pick(o.k,i,false)); marks.push(m);
     }
@@ -135,14 +143,14 @@ const GLOBAL=stat(rec.length,'Touren aufgezeichnet')+
   stat(fmt(rec.reduce((a,o)=>a+o.km,0)),'Kilometer')+
   stat(fmt(rec.reduce((a,o)=>a+o.up,0)),'Höhenmeter')+
   stat(fmt(rec.reduce((a,o)=>a+(o.days||0),0)),'Tage unterwegs')+
-  stat(TOUREN.filter(o=>o.ev==='photos'&&!o.notbike).length,'aus Fotos rekonstruiert');
+  stat(TOUREN.filter(o=>(o.ev==='photos'||o.ev==='landmarks')&&!o.notbike).length,'aus Fotos rekonstruiert');
 function drawStats(){
   if(!sel||!T[sel]){ statsEl.classList.remove('one'); statsEl.innerHTML=GLOBAL; return; }
   const o=T[sel].o, ph=o.ev==='photos';
   statsEl.classList.add('one');
   statsEl.innerHTML=`<div class="stat lead"><b style="color:${o.c}">${o.short||o.n}</b><span>${who(o)}</span></div>`+
     stat(o.days??'?','Tage')+
-    (ph?stat('≈ '+fmt(o.straight)+'*','km Luftlinie'):stat(fmt(o.km),'Kilometer')+stat(fmt(o.up),'Höhenmeter')+stat(fmt(o.hi),'höchster Punkt'))+
+    ((ph||o.ev==='landmarks')?stat('≈ '+fmt(o.straight)+'*','km Luftlinie'):stat(fmt(o.km),'Kilometer')+stat(fmt(o.up),'Höhenmeter')+stat(fmt(o.hi),'höchster Punkt'))+
     `<div class="stat"><b><a href="${noteUrl(o)}" style="font-size:19px">Notiz →</a></b><span>in Obsidian</span></div>`+
     `<div class="stat"><b><button class="clear show" id="clear">alle Touren</button></b><span>Auswahl aufheben</span></div>`;
   document.getElementById('clear').addEventListener('click',clearSel);
@@ -163,10 +171,11 @@ for(const o of TOUREN){
   const y=o.start.slice(0,4);
   if(y!==lastYear){ tb.insertAdjacentHTML('beforeend',`<tr class="y"><td colspan="7">${y}</td></tr>`); lastYear=y; }
   const t=T[o.k], ph=t.ph;
-  const cls=ph?'sw dot':(o.dash?'sw dash':'sw');
-  const style=ph||o.dash?`color:${o.c};background:none`:`background:${o.c}`;
-  const badges=(o.notbike?'<span class="ev">nicht geradelt</span> ':'')+(ph?'<span class="ev">aus Fotos</span>':(o.ev==='planned'?'<span class="ev">geplant</span>':''));
-  const stages=o.segs.map((s,i)=>s.d?`<div class="stg" data-k="${o.k}" data-i="${i}"><span class="dn2" style="background:${([...new Set(o.segs.map(x=>x.d))].indexOf(s.d)%2)?shade(o.c,.42):o.c}">${dayNo(o,s.d)}</span>${s.d.slice(5)} ${s.n} <span class="det">${ph?s.photos+' Fotos':fmt(s.km)+' km · ↑ '+fmt(s.up)}</span></div>`:'').join('');
+  const lm=o.ev==='landmarks';
+  const cls=(ph||lm)?'sw dot':(o.dash?'sw dash':'sw');
+  const style=(ph||lm||o.dash)?`color:${o.c};background:none`:`background:${o.c}`;
+  const badges=(o.notbike?'<span class="ev">nicht geradelt</span> ':'')+(lm?'<span class="ev">aus Fotos identifiziert</span>':(ph?'<span class="ev">aus Foto-GPS</span>':(o.ev==='planned'?'<span class="ev">geplant</span>':'')));
+  const stages=o.segs.map((s,i)=>s.d?`<div class="stg" data-k="${o.k}" data-i="${i}"><span class="dn2" style="background:${s.mode==='transfer'?'#8A9099':(([...new Set(o.segs.map(x=>x.d))].indexOf(s.d)%2)?shade(o.c,.42):o.c)}">${lm&&s.mode==='transfer'?'≈':dayNo(o,s.d)}</span>${s.d.slice(5)} ${s.n} <span class="det">${lm?'≈ '+fmt(s.straight)+' km Luftlinie'+(s.mode==='transfer'?' · Bahn/Schiff':(s.mode==='suspected'?' · vermutet':'')):(ph?s.photos+' Fotos':fmt(s.km)+' km · ↑ '+fmt(s.up))}</span></div>`:'').join('');
   tb.insertAdjacentHTML('beforeend',
    `<tr class="t" data-k="${o.k}">
       <td><i class="${cls}" style="${style}"></i></td>
@@ -175,9 +184,9 @@ for(const o of TOUREN){
           <div class="st" hidden>${stages}<div class="stg" style="cursor:default"><a href="${noteUrl(o)}">Notiz in Obsidian öffnen</a></div></div></td>
       <td class="hide det">${o.region_de||o.region}</td>
       <td class="n">${o.days??'?'}</td>
-      <td class="n">${ph?'<span class="det">≈ '+fmt(o.straight)+'&#42;</span>':fmt(o.km)}</td>
-      <td class="n">${ph?'<span class="det">—</span>':fmt(o.up)}</td>
-      <td class="n hide">${ph?'<span class="det">—</span>':fmt(o.hi)}</td>
+      <td class="n">${(ph||lm)?'<span class="det">≈ '+fmt(o.straight)+'&#42;</span>':fmt(o.km)}</td>
+      <td class="n">${(ph||lm)?'<span class="det">—</span>':fmt(o.up)}</td>
+      <td class="n hide">${(ph||lm)?'<span class="det">—</span>':fmt(o.hi)}</td>
     </tr>`);
 }
 
