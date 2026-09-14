@@ -6,7 +6,10 @@ root=ET.parse(os.path.join(D,T.get('gpx','route.gpx'))).getroot()
 pts=[(float(p.get('lat')),float(p.get('lon')),float(p.find('g:ele',ns).text)) for p in root.findall('.//g:trkpt',ns)]
 a=np.array(pts); lat=np.radians(a[:,0]); lon=np.radians(a[:,1])
 h=np.sin(np.diff(lat)/2)**2+np.cos(lat[:-1])*np.cos(lat[1:])*np.sin(np.diff(lon)/2)**2
-cum=np.concatenate([[0],np.cumsum(2*6371000*np.arcsin(np.sqrt(h)))])
+step=2*6371000*np.arcsin(np.sqrt(h))
+GAP=np.where(step>2000)[0]            # jumps > 2 km (e.g. a transfer between two ridden parts): no distance, no line
+step[GAP]=0
+cum=np.concatenate([[0],np.cumsum(step)])
 t=np.column_stack([a,cum]); np.save(os.path.join(D,'track.npy'),t)
 KM=cum/1000; N=len(t)
 op=os.path.join(D,'osm_points.json')
@@ -30,10 +33,21 @@ def merge(runs):
         out.append([c,i0,i1])
     return out
 for _ in range(3): runs=merge(runs)
+# split runs at gaps so no polyline is drawn across a transfer
+gapset=set(int(g) for g in GAP)      # gap between point g and g+1
+split=[]
+for c,i0,i1 in runs:
+    s0=i0
+    for g in sorted(gapset):
+        if i0<=g<i1: split.append([c,s0,g]); s0=g+1
+    split.append([c,s0,i1])
+runs=[r for r in split if r[2]>=r[1]]
 segs=[]
 for c,i0,i1 in runs:
-    P=[[round(float(t[i,0]),5),round(float(t[i,1]),5),int(round(t[i,2])),round(float(KM[i]),2)] for i in range(i0,min(i1+2,N))]
+    last=i1+2 if (i1 not in gapset) else i1+1
+    P=[[round(float(t[i,0]),5),round(float(t[i,1]),5),int(round(t[i,2])),round(float(KM[i]),2)] for i in range(i0,min(last,N))]
     segs.append({'c':c,'pts':P})
+if len(GAP): print("gaps (transfers) at km",[round(float(KM[g]),1) for g in GAP])
 json.dump(segs,open(os.path.join(D,'track.json'),'w'),separators=(',',':'))
 tot={}
 for s_ in segs: tot[s_['c']]=tot.get(s_['c'],0)+(s_['pts'][-1][3]-s_['pts'][0][3])

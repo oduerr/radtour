@@ -199,5 +199,15 @@
 "lon": 8.77787,
 "txt": "Die letzten 15 km Aurelia sind Stadtverkehr. Regionalzug Voltri → Genova Piazza Principe, 20 min, Fahrrad erlaubt.",
 "links": []
+},
+{
+"km": 667.5,
+"k": "note",
+"n": "Varazze – Tag 11",
+"ele": 5,
+"lat": 44.40722,
+"lon": 8.93378,
+"txt": "Tag 11 (Komoot): Varazze → Genova am Meer, 33 km flach. Lungomare Europa (alte Bahntrasse, autofrei) bis Cogoleto, dann Küstenstraße über Arenzano und Voltri nach Genova; Ziel Stazione Principe / FlixBus-Halt. Der Sprung von Genova (Ende Tag 10) nach Varazze ist kein Weg, sondern der Beginn des neuen Tracks.",
+"links": []
 }
 ]
