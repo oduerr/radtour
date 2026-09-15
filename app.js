@@ -9,6 +9,7 @@ const TEMPLATE=`<div id="map"></div>
   <label><input type="checkbox" id="opt-big"><span>Grosse Symbole<small>Zelt, Hütte, Bett, Pässe 1,7×</small></span></label>
   <label><input type="checkbox" id="opt-all"><span>Unterkünfte immer zeigen<small>Betten und Hütten in allen Zoomstufen (Planung)</small></span></label>
   <label><input type="checkbox" id="opt-follow"><span>Profil folgt Karte<small>Profil zeigt den Teil der Route, der auf der Karte zu sehen ist</small></span></label>
+  <label><input type="checkbox" id="opt-gpsfollow"><span>Karte folgt GPS<small>wandert beim Fahren mit; nach dem Verschieben kehrt sie von selbst zurück</small></span></label>
 </div>
 <div class="sheet" id="sheet">
   <div class="handle" id="handle"><i></i></div>
@@ -27,7 +28,7 @@ const GRADECOL=['','#F2D16B','#F0A040','#E0524A','#9E1B1B'];   // climb grade bi
 const $=id=>document.getElementById(id);
 let day=0, varSel=null;
 const AP=()=>varSel?varSel.pts:P;
-let OPT={hc:false,big:false,all:false,follow:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rt.opt')||'{}')); }catch(e){}
+let OPT={hc:false,big:false,all:false,follow:true,gpsfollow:true}; try{ Object.assign(OPT,JSON.parse(localStorage.getItem('rt.opt')||'{}')); }catch(e){}
 function applyOpt(){ document.body.classList.toggle('hc',OPT.hc); document.body.classList.toggle('big',OPT.big); try{ localStorage.setItem('rt.opt',JSON.stringify(OPT)); }catch(e){} }
 applyOpt();
 // ---- flatten points ----
@@ -265,6 +266,31 @@ let userMoved=false; map.on('dragstart zoomstart',()=>{ if(!prog) userMoved=true
 $('handle').onclick=()=>{ sheet.classList.toggle('min'); syncSheet(); setTimeout(()=>{ if(!userMoved&&varSel) selectVariant(varSel); else if(!userMoved&&day) selectDay(day); else { syncWin(); drawProfile(); } },280); };
 // ---- GPS ----
 let gps=null, gpsM=null, gpsC=null, watchId=null, follow=false, ctl=null;
+// direction of travel: course over ground (device heading, else bearing between fixes), smoothed; plain dot when unreliable
+let hdg=null, hdgAt=0, hdgVec=null, lastFix=null, resumeT=null, wantResume=false;
+const HDG_SPEED=1.0, HDG_TTL=20000, RESUME_MS=6000;   // m/s minimum, ms until the arrow expires, ms until the map returns to the rider
+const RAD=Math.PI/180;
+function bearing(la1,lo1,la2,lo2){ const p1=la1*RAD,p2=la2*RAD,dl=(lo2-lo1)*RAD;
+  return (Math.atan2(Math.sin(dl)*Math.cos(p2), Math.cos(p1)*Math.sin(p2)-Math.sin(p1)*Math.cos(p2)*Math.cos(dl))/RAD+360)%360; }
+function metres(la1,lo1,la2,lo2){ const cl=Math.cos((la1+la2)/2*RAD); return Math.hypot((la2-la1)*111320, (lo2-lo1)*111320*cl); }
+function updateHeading(la,lo,acc,hd,sp,ts){ let cand=null, moving=false;
+  if(lastFix){ const dt=(ts-lastFix.ts)/1000, d=metres(lastFix.la,lastFix.lo,la,lo);
+    if(dt>0.5&&dt<30){ const v=(sp!=null&&sp>=0&&isFinite(sp))?sp:d/dt; moving=v>=HDG_SPEED;
+      if(moving&&d>Math.max(8,acc*0.5)) cand=bearing(lastFix.la,lastFix.lo,la,lo); } }
+  else if(sp!=null&&sp>=HDG_SPEED) moving=true;
+  if(moving&&hd!=null&&isFinite(hd)) cand=hd;            // the device's own course is better when it has one
+  if(cand!=null){ const c=Math.cos(cand*RAD), s2=Math.sin(cand*RAD);
+    hdgVec=hdgVec?{x:hdgVec.x*.6+c*.4,y:hdgVec.y*.6+s2*.4}:{x:c,y:s2};
+    hdg=(Math.atan2(hdgVec.y,hdgVec.x)/RAD+360)%360; hdgAt=ts; }
+  else if(hdg!=null&&ts-hdgAt>HDG_TTL){ hdg=null; hdgVec=null; }
+  lastFix={la,lo,ts}; }
+// +1 = along the route, -1 = against it, 0 = unknown (no heading, or too far off the route)
+function routeDir(){ if(hdg==null||!gps||gps.off>0.25) return 0; const A=AP(); let i=idxAtKm(gps.km), j=i;
+  while(j+1<A.length&&A[j][3]-A[i][3]<0.06) j++;
+  if(j<=i){ if(i<=0) return 0; j=i; i=Math.max(0,i-8); if(j<=i) return 0; }
+  const d=Math.abs(((hdg-bearing(A[i][0],A[i][1],A[j][0],A[j][1])+540)%360)-180); return d<60?1:d>120?-1:0; }
+function paintDot(){ if(!gpsM) return; const el=gpsM.getElement(); if(!el) return; const a=el.querySelector('i'); const on=hdg!=null;
+  el.classList.toggle('dir',on); el.classList.toggle('rev',on&&routeDir()===-1); if(on&&a) a.style.transform='rotate('+hdg.toFixed(0)+'deg)'; }
 const Locate=L.Control.extend({onAdd(){ const d=L.DomUtil.create('div','leaflet-bar leaflet-control leaflet-control-locate'); const a=L.DomUtil.create('a','',d); a.href='#'; a.title='Standort (l)'; a.innerHTML='◎';
   L.DomEvent.on(a,'click',e=>{L.DomEvent.stop(e); locateTap();}); ctl=d; return d; }});
 new Locate({position:'topright'}).addTo(map);
@@ -272,25 +298,38 @@ const Gear=L.Control.extend({onAdd(){ const d=L.DomUtil.create('div','leaflet-ba
   L.DomEvent.on(a,'click',e=>{ L.DomEvent.stop(e); const g=$('gear'); const open=!g.classList.contains('open'); g.classList.toggle('open',open); d.classList.toggle('on',open); if(open){ const r=d.getBoundingClientRect(); g.style.top=r.top+'px'; } }); return d; }});
 new Gear({position:'topright'}).addTo(map);
 map.on('click dragstart',()=>{ $('gear').classList.remove('open'); document.querySelector('.leaflet-control-gear').classList.remove('on'); });
-for(const k of ['hc','big','all','follow']){ const el=$('opt-'+k); el.checked=!!OPT[k]; el.onchange=()=>{ OPT[k]=el.checked; applyOpt(); routeStyle(); bedsShown=null; syncBeds(); declutter(); syncWin(); drawProfile(); }; }
-function locateTap(){ if(watchId===null) startGps(); else if(!follow){ follow=true; ctl.classList.add('follow'); if(gps) progMove(()=>map.setView([gps.lat,gps.lon],Math.max(map.getZoom(),14))); } else stopGps(); }
+for(const k of ['hc','big','all','follow','gpsfollow']){ const el=$('opt-'+k); el.checked=!!OPT[k]; el.onchange=()=>{ OPT[k]=el.checked; applyOpt(); routeStyle(); bedsShown=null; syncBeds(); declutter(); syncWin(); drawProfile(); if(k==='gpsfollow'){ clearTimeout(resumeT); resumeT=null; wantResume=false; if(OPT.gpsfollow&&watchId!==null&&!follow) followOn(true); } }; }
+function followOn(zoom){ follow=true; wantResume=false; clearTimeout(resumeT); resumeT=null; ctl.classList.add('follow');
+  if(gps){ if(zoom) progMove(()=>map.setView([gps.lat,gps.lon],Math.max(map.getZoom(),14))); else keepInView(); } }
+function followOff(){ follow=false; ctl.classList.remove('follow'); }
+// pan only when the dot leaves the free area between header and sheet, so the map does not twitch at every fix
+function keepInView(){ if(!gps) return; const pt=map.latLngToContainerPoint([gps.lat,gps.lon]), sz=map.getSize(),
+    hdr=document.querySelector('.hdr .bar').getBoundingClientRect(), top=hdr.bottom+20, bot=Math.min(sz.y*.8,sheet.getBoundingClientRect().top-20);
+  if(pt.x<sz.x*.15||pt.x>sz.x*.85||pt.y<top||pt.y>bot) progMove(()=>map.panTo([gps.lat,gps.lon])); }
+function locateTap(){ if(watchId===null) startGps(); else if(!follow) followOn(true); else stopGps(); }
 function startGps(){ if(!navigator.geolocation){ setNav('Kein GPS im Browser — auf dem Handy braucht die Seite https.',true); return; }
   ctl.classList.add('on','follow'); follow=true; setNav('Suche Standort …',true);
-  watchId=navigator.geolocation.watchPosition(pos=>{ const {latitude:la,longitude:lo,accuracy:acc}=pos.coords; const n=nearest(la,lo); const seen=gps&&gps.seen; gps={lat:la,lon:lo,acc,km:n.km,off:n.dist,seen};
-    if(!gpsM){ gpsC=L.circle([la,lo],{radius:acc,color:'#1E88E5',weight:1,fillOpacity:.12,interactive:false}).addTo(map); gpsM=L.marker([la,lo],{icon:L.divIcon({className:'gpsdot',iconSize:[14,14]}),interactive:false,zIndexOffset:1000}).addTo(map); }
+  watchId=navigator.geolocation.watchPosition(pos=>{ const {latitude:la,longitude:lo,accuracy:acc,heading:hd,speed:sp}=pos.coords; const ts=pos.timestamp||Date.now();
+    const n=nearest(la,lo); const seen=gps&&gps.seen; gps={lat:la,lon:lo,acc,km:n.km,off:n.dist,seen}; updateHeading(la,lo,acc,hd,sp,ts);
+    if(!gpsM){ gpsC=L.circle([la,lo],{radius:acc,color:'#1E88E5',weight:1,fillOpacity:.12,interactive:false}).addTo(map); gpsM=L.marker([la,lo],{icon:L.divIcon({className:'gpsdot',html:'<i></i>',iconSize:[14,14]}),interactive:false,zIndexOffset:1000}).addTo(map); }
     else { gpsC.setLatLng([la,lo]).setRadius(acc); gpsM.setLatLng([la,lo]); }
-    if(follow){ if(!gps.seen){ gps.seen=1; progMove(()=>map.setView([la,lo],Math.max(map.getZoom(),14))); } else { const pt=map.latLngToContainerPoint([la,lo]), sz=map.getSize(), hdr=document.querySelector('.hdr .bar').getBoundingClientRect(), top=hdr.bottom+20, bot=Math.min(sz.y*.8,sheet.getBoundingClientRect().top-20); if(pt.x<sz.x*.15||pt.x>sz.x*.85||pt.y<top||pt.y>bot) progMove(()=>map.panTo([la,lo])); } }
+    if(follow){ if(!gps.seen){ gps.seen=1; progMove(()=>map.setView([la,lo],Math.max(map.getZoom(),14))); } else keepInView(); }
+    paintDot();
     updateNav(); drawProfile(); },
    err=>{ if(err.code===3) return; if(err.code===2){ setNav('📍 kein GPS-Signal — warte …',true); return; } stopGps(); setNav(err.code===1?'Standort verweigert — in den Browser-Einstellungen erlauben.':'Standort nicht verfügbar: '+err.message,true); },
    {enableHighAccuracy:true,maximumAge:5000,timeout:20000}); }
-function stopGps(){ if(watchId!==null) navigator.geolocation.clearWatch(watchId); watchId=null; follow=false; ctl.classList.remove('on','follow'); if(gpsM){map.removeLayer(gpsM);map.removeLayer(gpsC);gpsM=gpsC=null;} gps=null; updateNav(); drawProfile(); }
-map.on('dragstart zoomstart',()=>{ if(follow&&!prog){ follow=false; ctl.classList.remove('follow'); } });
+function stopGps(){ if(watchId!==null) navigator.geolocation.clearWatch(watchId); watchId=null; follow=false; clearTimeout(resumeT); resumeT=null;
+  hdg=null; hdgVec=null; lastFix=null; wantResume=false; ctl.classList.remove('on','follow'); if(gpsM){map.removeLayer(gpsM);map.removeLayer(gpsC);gpsM=gpsC=null;} gps=null; updateNav(); drawProfile(); }
+map.on('dragstart zoomstart',()=>{ if(follow&&!prog){ followOff(); wantResume=!!OPT.gpsfollow; } });
+// with the setting on, the map returns to the rider a few seconds after the last interaction (a deliberate look ahead is never yanked back mid-gesture)
+map.on('moveend',()=>{ if(prog||follow||!wantResume||watchId===null||!OPT.gpsfollow||!gps) return; clearTimeout(resumeT); resumeT=setTimeout(()=>{ if(wantResume&&watchId!==null&&OPT.gpsfollow&&gps&&!follow) followOn(false); },RESUME_MS); });
 function setNav(t,off){ const n=$('nav'); n.textContent=t; n.classList.toggle('off',!!off); }
 function updateNav(){ if(!gps){ if(watchId===null){ const st=endOf(curKm), e=AP()[idxAtKm(curKm)][2]; setNav(curKm>0?`▸ km ${curKm.toFixed(1)} · ${e} m · noch ${fmtKm(st.end_km-curKm)} → ${st.to}  (GPS: ◎)`:'GPS aus — ◎ antippen für Standort',true); } return; }
   const st=endOf(gps.km);
   let nc=null,nb=null; for(const pl of PL){ if(pl.km<gps.km-0.5) continue; if(pl.k==='camp'&&pl.off<=2&&(!nc||pl.km<nc.km)) nc=pl; if(pl.k!=='camp'&&pl.off<=1.0&&(!nb||pl.km<nb.km)) nb=pl; }
   const off=gps.off>0.3?` · ${gps.off>=1?gps.off.toFixed(1).replace('.',',')+' km':Math.round(gps.off*1000)+' m'} neben Route`:'';
-  setNav(`📍 ${varSel?'Variante · ':''}noch ${fmtKm(st.end_km-gps.km)} → ${st.to}`+(nc?` · ⛺ ${fmtKm(nc.km-gps.km)}`:'')+(nb?` · ${nb.k==='bed'?'🛏':'🏠'} ${fmtKm(nb.km-gps.km)}`:'')+` · km ${gps.km.toFixed(1)}`+off,false); }
+  const rd=routeDir(), dir=rd===-1?'↩ Gegenrichtung · ':rd===1?'↑ ':'';
+  setNav(`📍 ${dir}${varSel?'Variante · ':''}noch ${fmtKm(st.end_km-gps.km)} → ${st.to}`+(nc?` · ⛺ ${fmtKm(nc.km-gps.km)}`:'')+(nb?` · ${nb.k==='bed'?'🛏':'🏠'} ${fmtKm(nb.km-gps.km)}`:'')+` · km ${gps.km.toFixed(1)}`+off,false); }
 // ---- init ----
 let saved=null; try{ saved=JSON.parse(localStorage.getItem('rt.'+TOUR.slug+'.view')||'null'); }catch(e){}
 // hash: #d4  |  #d4/46.54,8.76/13  |  #46.54,8.76/13   (day, optional centre/zoom)

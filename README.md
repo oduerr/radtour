@@ -6,9 +6,10 @@ Interactive maps for multi-day bike tours: route coloured by surface, day views,
   profile coupled to the map, campsites / huts / beds (OSM), passes and push sections with links to
   tour descriptions, weather links to the `weather` app, GPS position with distance to tonight's stop.
 - Hash: `#d4` (day), `#d4/46.54,8.76/14` (day + centre/zoom). View and day persist in localStorage (per tour). Old links `/radtour/#d4` redirect to `genova/`.
-- ⚙ menu: high-contrast mode (large type, thick line — for reading while riding), big symbols (1.7×), show beds/huts at every zoom (planning). Stored in localStorage.
+- ⚙ menu: high-contrast mode (large type, thick line — for reading while riding), big symbols (1.7×), show beds/huts at every zoom (planning), „Karte folgt GPS“. Stored in localStorage.
 - Profile follows the map (⚙ „Profil folgt Karte“, default on): the profile shows the part of the route that is on screen, whatever the zoom, also across days (min. 2 km); length as „Ausschnitt x km“. A day chip only fits the map. Off = whole stage.
 - Metric scale bar bottom-left of the map (above the bottom sheet on phones).
+- Riding: with „Karte folgt GPS“ (⚙, default on) the map travels with the rider while GPS is on; dragging or zooming suspends it and it returns by itself about 6 s after the last interaction, keeping the chosen zoom. ◎ works as before when the setting is off. The position dot carries a cone showing the course over ground (device heading, else the bearing between fixes, smoothed, only above 1 m/s); it turns red and the GPS line says „Gegenrichtung“ when the rider is heading against the route. No reliable heading means a plain dot.
 - Profile: the area under the line is coloured by climb grade (3–6 % yellow, 6–9 % orange, 9–12 % red, >12 % dark red; descents grey; 200 m smoothing, 1 km in wide windows). The cursor dot and the GPS dot carry an altitude/grade label („2194 m · ↗ 7 %“).
 - Every popup (places, passes, stage ends, weather points) and the route cursor (tap the dot, or `#d5/lat,lon/14/p`) carry a **Fotos / Karten** row: Google Maps, Street View, satellite, Mapillary, Flickr, Wikimedia Commons, Komoot, Strava heatmap, OSM, swisstopo (CH), PeakFinder (passes). "Link kopieren" copies a share link to that point.
 - Keyboard on PC: ← → change day, `l` locate. Add to home screen on the phone (PWA manifest).
