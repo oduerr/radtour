@@ -89,7 +89,7 @@ a{color:var(--accent)}
 <span><i class="sw dash" style="color:var(--muted)"></i> geplant</span>
 <span><i class="dn2" style="background:var(--muted);min-width:17px">3</i> Etappenende, Tag 3</span>
 </div>
-Zahlen aus den Aufzeichnungen (Distanz und Höhenmeter vom Gerät). Eine Tour anklicken — in der Liste oder oben — hebt sie auf der Karte hervor; eine Etappe anklicken zoomt darauf. Gestrichelte Linien verbinden nur Fotostandorte. GPX je Etappe in der Obsidian-Notiz. <a href="../">← Alle Touren (Startseite)</a>
+Zahlen aus den Aufzeichnungen (Distanz und Höhenmeter vom Gerät). Eine Tour anklicken — in der Liste oder oben — hebt sie auf der Karte hervor; eine Etappe anklicken zoomt darauf. Gestrichelte Linien verbinden nur Fotostandorte. Touren außerhalb Europas (Taiwan, USA, Südafrika) sind über ihren Chip erreichbar, damit die Übersicht auf Europa bleibt. GPX je Etappe in der Obsidian-Notiz. <a href="../">← Alle Touren (Startseite)</a>
 </div>
 </div>
 <script src="../vendor/leaflet/leaflet.js"></script><script src="touren.js"></script>
@@ -221,7 +221,7 @@ function pick(k,stage,zoom,scroll){
   if(changed&&k&&scroll){ const row=document.querySelector(`tr.t[data-k="${k}"]`); if(row) row.scrollIntoView({block:'nearest'}); }
 }
 function clearSel(){ sel=null; selStage=null; paint(); fitAll(); }
-function fitAll(){ const b=L.latLngBounds([]); for(const k in T){ const c=T[k].b.getCenter(); if(c.lng>-20&&c.lng<30) b.extend(T[k].b); } if(!b.isValid()) for(const k in T) b.extend(T[k].b); map.fitBounds(b,{padding:[20,20]}); }
+function fitAll(){ const b=L.latLngBounds([]); for(const k in T){ if(!T[k].o.far) b.extend(T[k].b); } if(!b.isValid()) for(const k in T) b.extend(T[k].b); map.fitBounds(b,{padding:[20,20]}); }
 document.querySelectorAll('.chip').forEach(e=>e.addEventListener('click',()=>e.dataset.k===sel?clearSel():pick(e.dataset.k,null,true,true)));
 document.querySelectorAll('tr.t').forEach(e=>e.addEventListener('click',()=>e.dataset.k===sel?clearSel():pick(e.dataset.k,null,true,false)));
 document.querySelectorAll('.stg').forEach(e=>{ if(!e.dataset.k) return; e.addEventListener('click',ev=>{ev.stopPropagation(); pick(e.dataset.k,+e.dataset.i,true);}); });
