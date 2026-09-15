@@ -85,6 +85,13 @@ body.big .gpsdot{transform:scale(1.5)}
 .leaflet-container{font:inherit}
 .leaflet-tooltip.rt{font-variant-numeric:tabular-nums;font-size:13px}
 .gpsdot{background:#1E88E5;border:2px solid #fff;border-radius:50%;box-shadow:0 0 0 2px rgba(30,136,229,.35)}
+/* direction of travel: a cone on the position dot, rotated to the course; hidden while no reliable heading */
+.gpsdot>i{position:absolute;left:50%;top:50%;width:0;height:0;display:none}
+.gpsdot.dir>i{display:block}
+.gpsdot>i::before{content:'';position:absolute;left:-7px;top:-21px;border-left:7px solid transparent;border-right:7px solid transparent;border-bottom:11px solid #1E88E5;filter:drop-shadow(0 0 1.5px #fff) drop-shadow(0 0 1px #fff)}
+.gpsdot.rev>i::before{border-bottom-color:#E0242A}
+body.big .gpsdot>i::before{left:-9px;top:-26px;border-left-width:9px;border-right-width:9px;border-bottom-width:14px}
+body.hc .gpsdot>i::before{left:-9px;top:-26px;border-left-width:9px;border-right-width:9px;border-bottom-width:14px}   /* riding mode: bigger cone */
 .cursordot{background:#1F2328;border:3px solid #fff;border-radius:50%;box-shadow:0 0 0 1px #000;cursor:pointer}
 .pmw{width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:50%}
 .pmw.end{box-shadow:0 0 0 3px #1D6E8C;background:rgba(29,110,140,.12)}
