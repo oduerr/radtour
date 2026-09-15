@@ -1,11 +1,20 @@
 """Write <slug>/index.html + <slug>/manifest.json for every tour, tours/index.js for the start page."""
-import json, os, html
+import hashlib, json, os, html
 ROOT=os.path.normpath(os.path.join(os.path.dirname(os.path.abspath(__file__)),'..')); TD=os.path.join(ROOT,'tours')
+
+def _ver(*paths):
+    h=hashlib.sha1()
+    for q in paths:
+        fp=os.path.join(ROOT,q)
+        if os.path.exists(fp): h.update(open(fp,'rb').read())
+    return h.hexdigest()[:8]
+VER=_ver('app.js','app.css')          # Cache-Buster: aendert sich, sobald app.js/app.css sich aendern
 idx=[]
 slugs=[d for d in os.listdir(TD) if os.path.isfile(os.path.join(TD,d,'tour.json'))]
 tours=sorted(((json.load(open(os.path.join(TD,d,'tour.json'))),d) for d in slugs), key=lambda x:(x[0].get('order',99),x[1]))   # tour.json "order": 1 = the tour being ridden, first on the start page
 for T,slug in tours:
     st=json.load(open(os.path.join(TD,slug,'stages.json'))) if os.path.exists(os.path.join(TD,slug,'stages.json')) else []
+    DVER=_ver(os.path.join('tours',slug,'data.js'))
     name=T['name']; short=T.get('short',name); d=os.path.join(ROOT,slug); os.makedirs(d,exist_ok=True)
     page=f"""<!doctype html>
 <html lang="de">
@@ -24,13 +33,13 @@ for T,slug in tours:
 <link rel="stylesheet" href="../vendor/markercluster/MarkerCluster.css">
 <link rel="stylesheet" href="../vendor/markercluster/MarkerCluster.Default.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap" media="print" onload="this.media='all'">
-<link rel="stylesheet" href="../app.css">
+<link rel="stylesheet" href="../app.css?v={VER}">
 </head>
 <body>
 <script src="../vendor/leaflet/leaflet.js"></script>
 <script src="../vendor/markercluster/leaflet.markercluster.js"></script>
-<script src="../tours/{slug}/data.js"></script>
-<script src="../app.js"></script>
+<script src="../tours/{slug}/data.js?v={DVER}"></script>
+<script src="../app.js?v={VER}"></script>
 </body>
 </html>
 """
