@@ -1,8 +1,8 @@
 {
  "slug": "reschen",
- "name": "Bozen → Reschen → Konstanz",
+ "name": "Bozen → Reschen → Oy-Mittelberg",
  "short": "BZ→OY",
- "dates": "Di 15. – Sa 19. September 2026 · Rückweg über Reschenpass, Fernpass und Allgäu",
+ "dates": "Di 15. – Fr 18. September 2026 · Rückweg über Reschenpass und Fernpass",
  "from": "Bozen",
  "order": 2,
  "note": "Komoot-Route von Oliver (13. Sept). Etsch-Radweg Bozen–Meran, Vinschgau-Radweg bis Mals, Reschenpass, Via Claudia Augusta hinunter ins Inntal (nur 2,8 km B 180), Via Claudia Augusta am Inn bis Landeck, Fernpass auf dem Römerweg (Schotter, kurzes Schiebestück), Lermoos – Reutte – Vils – Pfronten – Oy-Mittelberg. Höhenmeter aus dem Track (5-m-Schwelle); Komoot nennt 2 710 m.",
@@ -27,11 +27,6 @@
   {
    "day": 4,
    "to": "Oy-Mittelberg",
-   "end_km": 272.7
-  },
-  {
-   "day": 5,
-   "to": "Konstanz",
    "end_km": null
   }
  ],

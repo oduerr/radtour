@@ -1,0 +1,114 @@
+{
+ "slug": "oy-konstanz",
+ "name": "Oy-Mittelberg → Konstanz",
+ "short": "OY→KN",
+ "order": 4,
+ "dates": "Lenas Heimweg · Allgäu und Bodensee-Nordufer",
+ "from": "Oy-Mittelberg",
+ "ch": false,
+ "gpx": "route.gpx",
+ "note": "Variante B: ab Oy-Mittelberg direkt über Rettenberg nach Immenstadt, also ohne den Katzberg und die B 310. Ab Immenstadt Olivers Komoot-Spur vom 18. Sept. 130 km, 572 hm. Ohne Unterkunftssuche.",
+ "stages": [
+  {
+   "day": 1,
+   "to": "Konstanz",
+   "end_km": null
+  }
+ ],
+ "features": [
+  {
+   "km": 10.3,
+   "k": "note",
+   "n": "Rettenberg",
+   "ele": 862,
+   "txt": "Ab Oy-Mittelberg auf Kreisstraßen über Rettenberg und die Thalstraße abwärts nach Immenstadt. Das ersetzt den alten Anlauf über Nesselwang und den Katzberg auf der B 310, spart 13 km und rund 100 Höhenmeter.",
+   "links": []
+  },
+  {
+   "km": 28.6,
+   "k": "note",
+   "n": "Großer Alpsee",
+   "ele": 726,
+   "txt": "Vom Alpsee bis Oberstaufen sanftes Ansteigen, rund 70 Höhenmeter auf elf Kilometern.",
+   "links": []
+  },
+  {
+   "km": 42.7,
+   "k": "note",
+   "n": "Buckel hinter Oberstaufen",
+   "ele": 879,
+   "txt": "Drei Kilometer nach Oberstaufen ein kurzer, steiler Buckel auf der Alten Salzstraße (LI 4), etwa 785 auf 879 m, streckenweise 10,8 %. Danach geht es sofort wieder hinunter. Umfahrbar wäre er über eine tiefere Linie Richtung Weißach, das kostet 6 km und 110 hm.",
+   "links": []
+  },
+  {
+   "km": 78.9,
+   "k": "note",
+   "n": "Lindau",
+   "ele": 429,
+   "txt": "Ab hier am Nordufer entlang über Kressbronn, Friedrichshafen und Meersburg nach Konstanz, flach. Die Bahn Lindau–Friedrichshafen ist wegen des Baus in Lindau-Aeschach bis 4. Okt. 2026 unterbrochen; auf dem Rad spielt das keine Rolle.",
+   "links": []
+  }
+ ],
+ "weather": [
+  {
+   "km": 0,
+   "n": "Oy-Mittelberg",
+   "h": 0
+  },
+  {
+   "km": 10.3,
+   "n": "Rettenberg",
+   "h": 0
+  },
+  {
+   "km": 22.0,
+   "n": "Immenstadt",
+   "h": 0
+  },
+  {
+   "km": 28.6,
+   "n": "Bühl am Alpsee",
+   "h": 0
+  },
+  {
+   "km": 39.7,
+   "n": "Oberstaufen",
+   "h": 0
+  },
+  {
+   "km": 47.5,
+   "n": "Weiler-Simmerberg",
+   "h": 0
+  },
+  {
+   "km": 78.9,
+   "n": "Lindau",
+   "h": 0
+  },
+  {
+   "km": 83.3,
+   "n": "Wasserburg",
+   "h": 0
+  },
+  {
+   "km": 87.9,
+   "n": "Kressbronn",
+   "h": 0
+  },
+  {
+   "km": 102.2,
+   "n": "Friedrichshafen",
+   "h": 0
+  },
+  {
+   "km": 120.3,
+   "n": "Meersburg",
+   "h": 0
+  },
+  {
+   "km": 130.0,
+   "n": "Konstanz",
+   "h": 0
+  }
+ ]
+}
