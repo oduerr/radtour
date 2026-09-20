@@ -8,7 +8,7 @@
  .leaflet-tile{filter:brightness(.9) saturate(.9)}.leaflet-popup-content-wrapper,.leaflet-popup-tip{background:var(--panel);color:var(--ink)}}
 *{box-sizing:border-box}
 body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
-#map{height:60vh;min-height:340px;background:var(--bg)}
+#map{height:56vh;min-height:320px;background:var(--bg);position:sticky;top:0;z-index:600;box-shadow:0 2px 10px rgba(0,0,0,.10)}
 .wrap{padding:16px 18px 32px;max-width:1120px;margin:0 auto}
 h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:30px;font-weight:700;margin:2px 0 8px;letter-spacing:.01em}
 .stats{display:flex;flex-wrap:wrap;gap:20px;margin:0 0 14px;padding:0 0 14px;border-bottom:1px solid var(--rule)}
@@ -19,7 +19,17 @@ h1{font-family:"Barlow Condensed",system-ui,sans-serif;font-size:30px;font-weigh
 .stat.lead b{font-size:21px}
 .stat.lead span{text-transform:none;letter-spacing:0;font-size:12.5px}
 .stat b a{text-decoration:none}
+.statline{display:none}
+.legtoggle{display:none;width:100%;margin:0 0 10px;border:1px solid var(--rule);background:var(--panel);color:var(--muted);
+ border-radius:10px;padding:8px 12px;font:600 14px "Barlow Condensed",system-ui,sans-serif;cursor:pointer;text-align:left}
+.find{display:flex;gap:6px;margin:0 0 12px}
+.find input{flex:1;min-width:0;font:15px system-ui;padding:9px 12px;border:1px solid var(--rule2);border-radius:10px;background:var(--panel);color:var(--ink)}
+.find input:focus{outline:2px solid var(--accent);outline-offset:-1px}
+.find button{flex:0 0 auto;width:40px;border:1px solid var(--rule2);border-radius:10px;background:var(--bg);color:var(--muted);cursor:pointer;font:17px system-ui}
+.hidden-by-q{display:none!important}
+.nomatch{color:var(--muted);font-size:13.5px;padding:10px 2px}
 .legend{margin:0 0 16px}
+@media(min-width:900px){.legend{column-count:2;column-gap:26px}.lrow{break-inside:avoid}}
 .lrow{display:flex;align-items:baseline;gap:8px;margin:0 0 5px}
 .lyear{font-family:"Barlow Condensed",system-ui,sans-serif;font-weight:700;font-size:15px;color:var(--muted);min-width:34px;font-variant-numeric:tabular-nums}
 .lchips{display:flex;flex-wrap:wrap;gap:5px}
@@ -54,19 +64,41 @@ tr.t.sel td:first-child{box-shadow:inset 3px 0 0 var(--ink)}
 .dn2{display:inline-block;min-width:17px;height:17px;border-radius:9px;color:#fff;font:700 10.5px/17px "Barlow Condensed",system-ui,sans-serif;text-align:center;margin-right:6px;padding:0 4px;vertical-align:1px}
 .dn{width:21px;height:21px;border-radius:50%;color:#fff;font:700 11.5px/17px "Barlow Condensed",system-ui,sans-serif;text-align:center;border:2px solid #fff;box-sizing:border-box;box-shadow:0 1px 3px rgba(0,0,0,.45)}
 a{color:var(--accent)}
+.bar{position:fixed;left:0;right:0;bottom:0;z-index:1200;background:var(--panel);border-top:1px solid var(--rule2);
+ box-shadow:0 -2px 16px rgba(0,0,0,.14);display:flex;align-items:center;gap:8px;
+ padding:9px 12px calc(9px + env(safe-area-inset-bottom,0))}
+@media(min-width:1180px){.bar{justify-content:center}.bar>*{flex:0 0 auto}.binfo{flex:0 1 620px}}
+.bar[hidden]{display:none}
+.binfo{flex:1;min-width:0}
+.binfo b{display:block;font:700 15px "Barlow Condensed",system-ui,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.binfo span{display:block;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bnav,.bclose,.bmap{flex:0 0 auto;border:1px solid var(--rule2);background:var(--bg);color:var(--ink);border-radius:10px;cursor:pointer}
+.bnav{width:40px;height:40px;font:400 22px/1 system-ui;padding:0}
+.bclose{width:40px;height:40px;font:400 17px/1 system-ui;padding:0}
+.bmap{height:40px;padding:0 13px;font:600 15px "Barlow Condensed",system-ui,sans-serif}
+.bnav:hover,.bclose:hover,.bmap:hover{border-color:var(--ink)}
+.bnav:disabled{opacity:.35;cursor:default}
+body.sel{padding-bottom:74px}
 .foot{margin-top:18px;padding-top:12px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--muted);line-height:1.6}
 .key{display:flex;flex-wrap:wrap;gap:14px;margin-bottom:8px}
 .key span{display:inline-flex;align-items:center;gap:6px}
 .leaflet-popup-content{font-size:13px;line-height:1.4;margin:10px 12px}
 .leaflet-popup-content b{font-size:13.5px}
 @media(max-width:640px){
- #map{height:46vh;min-height:280px}
+ #map{height:42vh;min-height:250px}
  .wrap{padding:14px 14px 28px}
  h1{font-size:25px}
  .stats{gap:14px}.stat b{font-size:20px}
  td.hide,th.hide{display:none}
  td{padding:8px 6px}th{padding:0 6px 6px}
  .lyear{min-width:30px}
+ .stats{display:none}
+ .statline{display:block;margin:0 0 12px;padding:0 0 12px;border-bottom:1px solid var(--rule);
+  font-size:13.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+ .statline b{color:var(--ink);font-weight:600}
+ .legtoggle{display:block}
+ #legend{display:none}
+ #legend.open{display:block}
  .lchips{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
  .lchips::-webkit-scrollbar{display:none}
  .chip{flex:0 0 auto;white-space:nowrap}
@@ -79,7 +111,11 @@ a{color:var(--accent)}
 <div class="wrap">
 <h1>Bisherige Touren</h1>
 <div class="stats" id="stats"></div>
+<p class="statline" id="statline"></p>
+<button class="legtoggle" id="legtoggle" hidden>Farblegende anzeigen</button>
+<div class="find"><input id="q" type="search" placeholder="Tour suchen — Name, Region, Jahr" autocomplete="off"><button id="qx" hidden title="Suche löschen">✕</button></div>
 <div class="legend" id="legend"></div>
+<div class="nomatch" id="nores" hidden>Keine Tour passt zu dieser Suche.</div>
 <table><thead><tr><th style="width:26px"></th><th>Tour</th><th class="hide">Region</th><th class="n">Tage</th><th class="n">km</th><th class="n">↑ m</th><th class="n hide">max m</th></tr></thead><tbody id="tb"></tbody></table>
 <div class="foot">
 <div class="key">
@@ -91,6 +127,13 @@ a{color:var(--accent)}
 </div>
 Zahlen aus den Aufzeichnungen (Distanz und Höhenmeter vom Gerät). Eine Tour anklicken — in der Liste oder oben — hebt sie auf der Karte hervor; eine Etappe anklicken zoomt darauf. Gestrichelte Linien verbinden nur Fotostandorte. Touren außerhalb Europas (Taiwan, USA, Südafrika) sind über ihren Chip erreichbar, damit die Übersicht auf Europa bleibt. GPX je Etappe in der Obsidian-Notiz. <a href="../">← Alle Touren (Startseite)</a>
 </div>
+</div>
+<div class="bar" id="bar" hidden>
+  <button class="bnav" id="prev" data-prev title="vorherige Tour">‹</button>
+  <div class="binfo"><b id="bname"></b><span id="bnums"></span></div>
+  <button class="bmap" id="tostages">Etappen</button>
+  <button class="bnav" id="next" data-next title="nächste Tour">›</button>
+  <button class="bclose" id="clear" title="Auswahl aufheben">✕</button>
 </div>
 <script src="../vendor/leaflet/leaflet.js"></script><script src="touren.js"></script>
 <script>
@@ -145,6 +188,11 @@ const GLOBAL=stat(rec.length,'Touren aufgezeichnet')+
   stat(fmt(rec.reduce((a,o)=>a+(o.days||0),0)),'Tage unterwegs')+
   stat(TOUREN.filter(o=>(o.ev==='photos'||o.ev==='landmarks')&&!o.notbike).length,'aus Fotos rekonstruiert');
 function drawStats(){
+  const line=document.getElementById('statline');
+  if(line) line.innerHTML = (!sel||!T[sel])
+    ? `<b>${rec.length}</b> Touren · <b>${fmt(rec.reduce((a,o)=>a+o.km,0))}</b> km · ↑ <b>${fmt(rec.reduce((a,o)=>a+o.up,0))}</b> m · ${fmt(rec.reduce((a,o)=>a+(o.days||0),0))} Tage unterwegs`
+    : `Eine Tour ausgewählt — Zahlen unten in der Leiste. <a href="#" id="lineclear">alle Touren</a>`;
+  const lc=document.getElementById('lineclear'); if(lc) lc.addEventListener('click',e=>{e.preventDefault();clearSel();});
   if(!sel||!T[sel]){ statsEl.classList.remove('one'); statsEl.innerHTML=GLOBAL; return; }
   const o=T[sel].o, ph=o.ev==='photos';
   statsEl.classList.add('one');
@@ -152,8 +200,8 @@ function drawStats(){
     stat(o.days??'?','Tage')+
     ((ph||o.ev==='landmarks')?stat('≈ '+fmt(o.straight)+'*','km Luftlinie'):stat(fmt(o.km),'Kilometer')+stat(fmt(o.up),'Höhenmeter')+stat(fmt(o.hi),'höchster Punkt'))+
     `<div class="stat"><b><a href="${noteUrl(o)}" style="font-size:19px">Notiz →</a></b><span>in Obsidian</span></div>`+
-    `<div class="stat"><b><button class="clear show" id="clear">alle Touren</button></b><span>Auswahl aufheben</span></div>`;
-  document.getElementById('clear').addEventListener('click',clearSel);
+    `<div class="stat"><b><button class="clear" id="clearTop">alle Touren</button></b><span>Auswahl aufheben</span></div>`;
+  document.getElementById('clearTop').addEventListener('click',clearSel);
 }
 
 // ---------- legend, grouped by year ----------
@@ -209,9 +257,24 @@ function paint(){
   document.querySelectorAll('.chip').forEach(e=>e.classList.toggle('on',e.dataset.k===sel));
   document.querySelectorAll('tr.t .st').forEach(e=>e.hidden=e.closest('tr').dataset.k!==sel);
   document.querySelectorAll('.stg').forEach(e=>e.classList.toggle('on',!!selStage&&e.dataset.k===selStage[0]&&+e.dataset.i===selStage[1]));
-  drawStats();
+  drawStats(); drawBar();
   history.replaceState(null,'',sel?'#'+sel:location.pathname);
 }
+const ORDER=TOUREN.map(o=>o.k);
+function drawBar(){
+  const bar=document.getElementById('bar');
+  if(!sel||!T[sel]){ bar.hidden=true; document.body.classList.remove('sel'); return; }
+  const o=T[sel].o, ph=o.ev==='photos'||o.ev==='landmarks';
+  bar.hidden=false; document.body.classList.add('sel');
+  const nm=document.getElementById('bname');
+  nm.textContent=o.short||o.n; nm.style.color=o.c;
+  document.getElementById('bnums').textContent=
+    (ph?`≈ ${fmt(o.straight)} km Luftlinie`:`${fmt(o.km)} km · ↑ ${fmt(o.up)} m`)+` · ${o.days??'?'} Tage · ${o.start.slice(0,4)}`;
+  const i=ORDER.indexOf(sel);
+  document.getElementById('prev').disabled=i<=0;
+  document.getElementById('next').disabled=i>=ORDER.length-1;
+}
+function step(d){ const i=ORDER.indexOf(sel), j=i+d; if(j<0||j>=ORDER.length) return; pick(ORDER[j],null,true,false); }
 function pick(k,stage,zoom,scroll){
   const changed=k!==sel;
   sel=k; selStage=(stage==null)?null:[k,stage];
@@ -225,8 +288,43 @@ function fitAll(){ const b=L.latLngBounds([]); for(const k in T){ if(!T[k].o.far
 document.querySelectorAll('.chip').forEach(e=>e.addEventListener('click',()=>e.dataset.k===sel?clearSel():pick(e.dataset.k,null,true,true)));
 document.querySelectorAll('tr.t').forEach(e=>e.addEventListener('click',()=>e.dataset.k===sel?clearSel():pick(e.dataset.k,null,true,false)));
 document.querySelectorAll('.stg').forEach(e=>{ if(!e.dataset.k) return; e.addEventListener('click',ev=>{ev.stopPropagation(); pick(e.dataset.k,+e.dataset.i,true);}); });
+document.getElementById('clear').addEventListener('click',clearSel);
+document.getElementById('prev').addEventListener('click',()=>step(-1));
+document.getElementById('next').addEventListener('click',()=>step(1));
+document.getElementById('tostages').addEventListener('click',()=>{
+  const row=document.querySelector(`tr.t[data-k="${sel}"]`); if(!row) return;
+  const st=row.querySelector('.st');
+  (st&&!st.hidden?st:row).scrollIntoView({block:'center'});
+});
 map.on('click',clearSel);
 map.on('zoomend',()=>{ if(!sel) paint(); });
+// ---------- find ----------
+const qEl=document.getElementById('q'), qx=document.getElementById('qx');
+function applyFilter(){
+  const t=qEl.value.trim().toLowerCase();
+  qx.hidden=!t;
+  let shown=0;
+  for(const o of TOUREN){
+    const hay=[o.n,o.short,o.region,o.start.slice(0,4),o.bikes,o.with].join(' ').toLowerCase();
+    const hit=!t||hay.includes(t); if(hit) shown++;
+    document.querySelectorAll(`.chip[data-k="${o.k}"],tr.t[data-k="${o.k}"]`)
+      .forEach(e=>e.classList.toggle('hidden-by-q',!hit));
+  }
+  document.querySelectorAll('.lrow').forEach(r=>
+    r.classList.toggle('hidden-by-q', !r.querySelector('.chip:not(.hidden-by-q)')));
+  let vis=0;
+  [...document.querySelectorAll('#tb tr')].reverse().forEach(r=>{
+    if(r.classList.contains('y')){ r.classList.toggle('hidden-by-q', vis===0); vis=0; }
+    else if(!r.classList.contains('hidden-by-q')) vis++;
+  });
+  document.getElementById('nores').hidden=shown>0;
+}
+qEl.addEventListener('input',applyFilter);
+qx.addEventListener('click',()=>{ qEl.value=''; applyFilter(); qEl.focus(); });
+const lt=document.getElementById('legtoggle'), lg=document.getElementById('legend');
+lt.hidden=false;
+lt.addEventListener('click',()=>{ const open=lg.classList.toggle('open');
+  lt.textContent=open?'Farblegende ausblenden':'Farblegende anzeigen'; });
 const h=location.hash.slice(1);
 addEventListener('load',()=>setTimeout(()=>map.invalidateSize(),0));
 if(h&&T[h]) pick(h,null,true,false); else { paint(); fitAll(); }
