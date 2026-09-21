@@ -1,13 +1,13 @@
 [
  {
   "day": 1,
-  "from": "Oy-Mittelberg",
+  "from": "Maria-Rain",
   "to": "Konstanz",
   "start_km": 0.0,
-  "end_km": 130.0,
-  "km": 130.0,
-  "up": 483,
-  "down": 1104,
+  "end_km": 136.4,
+  "km": 136.4,
+  "up": 546,
+  "down": 1050,
   "lat": 47.65894,
   "lon": 9.17502,
   "ele": 400

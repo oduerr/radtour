@@ -1,42 +1,42 @@
 [
 {
-"km": 10.3,
+"km": 10.0,
 "k": "note",
-"n": "Rettenberg",
-"ele": 862,
-"lat": 47.5951,
-"lon": 10.31715,
-"txt": "Ab Oy-Mittelberg auf Kreisstraßen über Rettenberg und die Thalstraße abwärts nach Immenstadt. Das ersetzt den alten Anlauf über Nesselwang und den Katzberg auf der B 310, spart 13 km und rund 100 Höhenmeter.",
+"n": "Wertach",
+"ele": 907,
+"lat": 47.60079,
+"lon": 10.40677,
+"txt": "Von Maria-Rain direkt westwärts über Wertach und Rettenberg nach Immenstadt. Die Fahrt über den Ortskern von Oy-Mittelberg wäre 2,6 km länger, 112 Höhenmeter mehr und hätte eine Rampe mit 9,9 %; diese Linie kommt mit 6,8 % aus.",
 "links": []
 },
 {
-"km": 28.6,
+"km": 35.1,
 "k": "note",
 "n": "Großer Alpsee",
 "ele": 726,
-"lat": 47.57013,
-"lon": 10.14838,
+"lat": 47.56925,
+"lon": 10.14588,
 "txt": "Vom Alpsee bis Oberstaufen sanftes Ansteigen, rund 70 Höhenmeter auf elf Kilometern.",
 "links": []
 },
 {
-"km": 42.7,
+"km": 49.1,
 "k": "note",
 "n": "Buckel hinter Oberstaufen",
 "ele": 879,
-"lat": 47.57611,
-"lon": 9.99981,
-"txt": "Drei Kilometer nach Oberstaufen ein kurzer, steiler Buckel auf der Alten Salzstraße (LI 4), etwa 785 auf 879 m, streckenweise 10,8 %. Danach geht es sofort wieder hinunter. Umfahrbar wäre er über eine tiefere Linie Richtung Weißach, das kostet 6 km und 110 hm.",
+"lat": 47.57609,
+"lon": 10.00113,
+"txt": "Drei Kilometer nach Oberstaufen ein kurzer, steiler Buckel auf der Alten Salzstraße (LI 4), etwa 785 auf 879 m, streckenweise 10,8 %. Danach sofort wieder hinunter. Umfahrbar über eine tiefere Linie Richtung Weißach, das kostet 6 km und 110 hm.",
 "links": []
 },
 {
-"km": 78.9,
+"km": 85.4,
 "k": "note",
 "n": "Lindau",
 "ele": 429,
-"lat": 47.56835,
-"lon": 9.68162,
-"txt": "Ab hier am Nordufer entlang über Kressbronn, Friedrichshafen und Meersburg nach Konstanz, flach. Die Bahn Lindau–Friedrichshafen ist wegen des Baus in Lindau-Aeschach bis 4. Okt. 2026 unterbrochen; auf dem Rad spielt das keine Rolle.",
+"lat": 47.56877,
+"lon": 9.68099,
+"txt": "Ab hier am Nordufer über Kressbronn, Friedrichshafen und Meersburg nach Konstanz, flach. Die Bahn Lindau–Friedrichshafen ist wegen des Baus in Lindau-Aeschach bis 4. Okt. 2026 unterbrochen; auf dem Rad spielt das keine Rolle.",
 "links": []
 }
 ]
